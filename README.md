@@ -1,1 +1,0 @@
-# BEST-hackathon-2025
