@@ -22,6 +22,6 @@ namespace best_hackathon_2025.MongoDB
         public IMongoCollection<Point> Points => _database.GetCollection<Point>("points");
         public IMongoCollection<Review> Reviews => _database.GetCollection<Review>("reviews");
         public IMongoCollection<Transport> Transport => _database.GetCollection<Transport>("transport");
-        public IMongoCollection<UserRole> UserRoles => _database.GetCollection<UserRole>("userRoles");
+        public IMongoCollection<PointRequest> PointRequest => _database.GetCollection<PointRequest>("pointRequests");
     }
 }

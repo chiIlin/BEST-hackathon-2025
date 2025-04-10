@@ -1,0 +1,397 @@
+﻿openapi: 3.0.3
+info:
+  title: Inclusive Map API
+  version: "1.0.0"
+  description: >
+    REST‑API для проєкту **Інклюзивна Карта**.
+    Включає авторизацію та CRUD‑операції для користувачів, точок, відгуків,
+    транспорту й заявок на додавання точок.
+servers:
+  - url: https://localhost:5001
+    description: Local HTTPS
+paths:
+  /api/auth/register:
+    post:
+      summary: Реєстрація користувача
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        "200":
+          description: Registered successfully
+        "400":
+          description: User already exists
+  /api/users:
+    get:
+      summary: Отримати всіх користувачів
+      responses:
+        "200":
+          description: Список користувачів
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+    post:
+      summary: Створити користувача
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        "200":
+          description: User created
+  /api/users/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+    get:
+      summary: Отримати користувача за Id
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        "404":
+          description: User not found
+    put:
+      summary: Оновити користувача
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        "200":
+          description: Updated
+    delete:
+      summary: Видалити користувача
+      responses:
+        "200":
+          description: Deleted
+  /api/points:
+    get:
+      summary: Отримати всі точки
+      responses:
+        "200":
+          description: Список точок
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Point'
+    post:
+      summary: Створити точку
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Point'
+      responses:
+        "200":
+          description: Point created
+  /api/points/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+    get:
+      summary: Отримати точку за Id
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Point'
+        "404":
+          description: Point not found
+    put:
+      summary: Оновити точку
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Point'
+      responses:
+        "200":
+          description: Updated
+    delete:
+      summary: Видалити точку
+      responses:
+        "200":
+          description: Deleted
+  /api/reviews:
+    get:
+      summary: Отримати всі відгуки
+      responses:
+        "200":
+          description: Список відгуків
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Review'
+    post:
+      summary: Створити відгук
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Review'
+      responses:
+        "200":
+          description: Review created
+  /api/reviews/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+    get:
+      summary: Отримати відгук за Id
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+        "404":
+          description: Review not found
+    put:
+      summary: Оновити відгук
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Review'
+      responses:
+        "200":
+          description: Updated
+    delete:
+      summary: Видалити відгук
+      responses:
+        "200":
+          description: Deleted
+  /api/transport:
+    get:
+      summary: Отримати всі маршрути
+      responses:
+        "200":
+          description: Список транспорту
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Transport'
+    post:
+      summary: Створити маршрут
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Transport'
+      responses:
+        "200":
+          description: Transport created
+  /api/transport/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+    get:
+      summary: Отримати маршрут за Id
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transport'
+        "404":
+          description: Transport not found
+    put:
+      summary: Оновити маршрут
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Transport'
+      responses:
+        "200":
+          description: Updated
+    delete:
+      summary: Видалити маршрут
+      responses:
+        "200":
+          description: Deleted
+  /api/pointrequest:
+    get:
+      summary: Отримати всі заявки на точки
+      responses:
+        "200":
+          description: Список заявок
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PointRequest'
+    post:
+      summary: Створити заявку
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PointRequest'
+      responses:
+        "200":
+          description: PointRequest created
+  /api/pointrequest/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+    get:
+      summary: Отримати заявку за Id
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PointRequest'
+        "404":
+          description: PointRequest not found
+    put:
+      summary: Оновити заявку
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PointRequest'
+      responses:
+        "200":
+          description: Updated
+    delete:
+      summary: Видалити заявку
+      responses:
+        "200":
+          description: Deleted
+components:
+  parameters:
+    IdParam:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+  schemas:
+    RegisterRequest:
+      type: object
+      required: [name, email, password]
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        role:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        hashedPassword:
+          type: string
+        points:
+          type: array
+          items:
+            type: string
+    Point:
+      type: object
+      properties:
+        id:
+          type: string
+        location:
+          type: string
+        categories:
+          type: array
+          items:
+            type: string
+        reviewIds:
+          type: array
+          items:
+            type: string
+        rating:
+          type: number
+          format: double
+        loi:
+          type: integer
+        adress:
+          type: string
+        description:
+          type: string
+    Review:
+      type: object
+      properties:
+        id:
+          type: string
+        pointId:
+          type: string
+        userId:
+          type: string
+        reviewText:
+          type: string
+        rating:
+          type: number
+          format: double
+        timeCreated:
+          type: string
+          format: date-time
+    Transport:
+      type: object
+      properties:
+        id:
+          type: string
+        route:
+          type: integer
+        type:
+          type: integer
+        categories:
+          type: array
+          items:
+            type: string
+        stops:
+          type: array
+          items:
+            type: string
+    PointRequest:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        point:
+          $ref: '#/components/schemas/Point'

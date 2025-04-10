@@ -1,8 +1,14 @@
-using best_hackathon_2025.MongoDB;
-using best_hackathon_2025.Repositories.Interfaces;
+﻿using best_hackathon_2025.MongoDB;
 using best_hackathon_2025.Repositories.Implementations;
+using best_hackathon_2025.Repositories.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new() { Title = "Inclusive Map API", Version = "v1" });
+});
 
 builder.Services.AddRazorPages();
 builder.Services.AddControllers();
@@ -13,16 +19,17 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IPointRepository, PointRepository>();
 builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<ITransportRepository, TransportRepository>();
-builder.Services.AddScoped<IUserRoleRepository, UserRoleRepository>();
+builder.Services.AddScoped<IPointRequestRepository, PointRequestRepository>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Inclusive Map API v1");
+    });
 }
 
 app.UseHttpsRedirection();
@@ -33,5 +40,6 @@ app.UseRouting();
 app.UseAuthorization();
 
 app.MapRazorPages();
+app.MapControllers();          
 
 app.Run();
