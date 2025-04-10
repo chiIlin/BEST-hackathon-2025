@@ -1,0 +1,29 @@
+@page 
+@using best_hackathon_2025.MongoDB.Collections
+@model User
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>User Info</title>
+</head>
+<body>
+    <h1>User Information</h1>
+
+    <p><strong>ID:</strong> @Model.Id</p>
+    <p><strong>Role:</strong> @Model.Role</p>
+    <p><strong>Name:</strong> @Model.Name</p>
+    <p><strong>Email:</strong> @Model.Email</p>
+    <p><strong>Hashed Password:</strong> @Model.HashedPassword</p>
+    <p><strong>Salt:</strong> @Model.Salt</p>
+
+    <h2>Points</h2>
+    <ul>
+        @foreach (var point in Model.Points)
+        {
+            <li>@point</li>
+        }
+    </ul>
+</body>
+</html>
