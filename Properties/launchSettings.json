@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "best-hackathon-2025": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:51977;http://localhost:51978"
+    }
+  }
+}
