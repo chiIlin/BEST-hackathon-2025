@@ -1,29 +1,29 @@
-@page 
-@using best_hackathon_2025.MongoDB.Collections
-@model User
+﻿@page
+<h1>User Information</h1>
+<div id="profile">Loading…</div>
 
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8" />
-    <title>User Info</title>
-</head>
-<body>
-    <h1>User Information</h1>
+<script>
+    async function loadProfile() {
+        const raw = localStorage.getItem('token');
+        if (!raw) { location.href = '/Auth/Login'; return; }
 
-    <p><strong>ID:</strong> @Model.Id</p>
-    <p><strong>Role:</strong> @Model.Role</p>
-    <p><strong>Name:</strong> @Model.Name</p>
-    <p><strong>Email:</strong> @Model.Email</p>
-    <p><strong>Hashed Password:</strong> @Model.HashedPassword</p>
-    <p><strong>Salt:</strong> @Model.Salt</p>
+        const res = await fetch('/api/user/me', {
+            headers: { Authorization: 'Bearer ' + raw }   // ← додаємо тут
+        });
 
-    <h2>Points</h2>
-    <ul>
-        @foreach (var point in Model.Points)
-        {
-            <li>@point</li>
+        if (res.status === 401) {
+            //localStorage.removeItem('token');
+            //location.href = '/Auth/Login';
+            console.error('DEBUG‑401', await res.text());   // ← додамо лог
+            return;
         }
-    </ul>
-</body>
-</html>
+        if (!res.ok) { document.getElementById('profile').textContent = 'Error ' + res.status; return; }
+
+        const u = await res.json();
+        document.getElementById('profile').innerHTML = `
+        <p><b>ID:</b> ${u.id}</p>
+        <p><b>Name:</b> ${u.name}</p>
+        <p><b>Email:</b> ${u.email}</p>`;
+    }
+    loadProfile();
+</script>

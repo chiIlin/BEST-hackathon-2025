@@ -1,6 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using best_hackathon_2025.Repositories.Interfaces;
 using best_hackathon_2025.MongoDB.Collections;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
+
 
 namespace best_hackathon_2025.Controllers
 {
@@ -53,5 +56,18 @@ namespace best_hackathon_2025.Controllers
             await _userRepository.DeleteAsync(id);
             return Ok("User deleted successfully");
         }
+        // Controllers/UserController.cs  (додайте всередині вже існуючого класу)
+        [Authorize]                     // токен обов’язковий
+        [HttpGet("me")]
+        public async Task<IActionResult> Me([FromServices] IUserRepository users)
+        {
+            Console.WriteLine("ME ENDPOINT CALLED");
+            var id = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (id is null) return Unauthorized();
+
+            var user = await users.GetByIdAsync(id);
+            return user is null ? NotFound() : Ok(user);
+        }
+
     }
 }

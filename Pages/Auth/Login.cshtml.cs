@@ -32,6 +32,6 @@ public class LoginModel : PageModel
         }
 
         Message = "Login successful!";
-        return RedirectToPage("/Index");
+        return RedirectToPage("/Profile");
     }
 }

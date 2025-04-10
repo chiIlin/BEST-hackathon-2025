@@ -1,26 +1,27 @@
 ﻿@page
-@model LoginModel
-@{
-    ViewData["Title"] = "Login";
-}
-
 <h2>Login</h2>
+<label>Email <input id="email"></label>
+<br>
+<label>Password <input id="pwd" type="password"></label>
+<br>
+<button onclick="login()">Sign in</button>
+<p id="msg"></p>
 
-<form method="post">
-    <div>
-        <label>Email</label>
-        <input asp-for="Input.Email" type="email" />
-    </div>
+<script>
+    async function login() {
+        const res = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                email: document.getElementById('email').value,
+                password: document.getElementById('pwd').value
+            })
+        });
 
-    <div>
-        <label>Password</label>
-        <input asp-for="Input.Password" type="password" />
-    </div>
+        if (!res.ok) { document.getElementById('msg').textContent = 'Wrong credentials'; return; }
 
-    <button type="submit">Login</button>
-</form>
-
-@if (!string.IsNullOrEmpty(Model.Message))
-{
-    <p>@Model.Message</p>
-}
+        const { token } = await res.json();
+        localStorage.setItem('token', token);            // ← без Bearer
+        location.href = '/Auth/Profile';
+    }
+</script>

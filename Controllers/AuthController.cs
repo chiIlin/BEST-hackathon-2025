@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using best_hackathon_2025.Repositories.Interfaces;
 using best_hackathon_2025.MongoDB.Collections;
+using best_hackathon_2025.Helpers;
 
 namespace best_hackathon_2025.Controllers
 {
@@ -33,6 +34,22 @@ namespace best_hackathon_2025.Controllers
             await _userRepository.CreateAsync(user);
             return Ok("Registered successfully!");
         }
+
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginRequest req,
+                                       [FromServices] JwtTokenGenerator jwt)
+        {
+            var user = await _userRepository.GetByEmailAsync(req.Email);
+            if (user is null || !BCrypt.Net.BCrypt.Verify(req.Password, user.HashedPassword))
+                return Unauthorized("Wrong credentials");
+
+            var token = jwt.Generate(user);
+            Console.WriteLine("SIGNED TOKEN: " + token[..30] + "...");
+            return Ok(new { token });
+        }
+
+        public record LoginRequest(string Email, string Password);
+
     }
 
     public class RegisterRequest
