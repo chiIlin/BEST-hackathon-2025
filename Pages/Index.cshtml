@@ -1,5 +1,7 @@
 ﻿@page
 @model best_hackathon_2025.Pages.IndexModel
+@using Microsoft.Extensions.Configuration
+@inject IConfiguration Configuration
 @{
     ViewData["Title"] = "Головна";
 }
@@ -20,9 +22,11 @@
         <header class="topbar">
             <input type="text" placeholder="Шукати на картах" class="search-box" />
             <a class="register-btn" href="/Auth/Register">Register</a>
+            <a class="register-btn" href="/Auth/Login">Login</a>
+            <a class="register-btn" href="/Auth/Profile">Profile</a>
         </header>
         <section class="map-section">
-            <img src="/images/map-placeholder.png" alt="Карта" class="map-image" />
+           <div id="map" style="height: 500px; width: 100%;"></div>
         </section>
     </main>
 </div>
@@ -39,5 +43,26 @@
             labels.forEach(label => label.classList.toggle('hidden'));
             appName.classList.toggle('hidden');
         });
+
+        // Функція для ініціалізації карти (викликається автоматично через callback)
+        function initMap() {
+            const center = { lat: 50.4501, lng: 30.5234 }; // Київ
+            const map = new google.maps.Map(document.getElementById("map"), {
+                zoom: 12,
+                center: center,
+            });
+
+            new google.maps.Marker({
+                position: center,
+                map: map,
+                title: "Центр Києва"
+            });
+        }
     </script>
+
+    <script async defer 
+        src="https://maps.googleapis.com/maps/api/js?key=@Configuration["GoogleMaps:ApiKey"]&callback=initMap">
+    </script>
+}
+
 }
