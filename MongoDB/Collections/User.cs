@@ -13,5 +13,7 @@ namespace best_hackathon_2025.MongoDB.Collections
         public string Email { get; set; }
         public string HashedPassword { get; set; }
         public List<string> Points { get; set; }
+        public List<string> Inclusivness { get; set; }
+
     }
 }

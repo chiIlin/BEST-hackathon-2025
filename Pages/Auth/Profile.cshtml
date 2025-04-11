@@ -1,69 +1,144 @@
 ﻿@page
 @using Microsoft.Extensions.Configuration
 @inject IConfiguration Config
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+<link rel="stylesheet" href="~/css/profile.css" />
 
-<h1>User Information</h1>
+<div class="card" id="profileCard">
+    <h2>Профіль користувача</h2>
 
-<div id="profile">Loading…</div>
-<button id="addBtn" style="display:none;">Додати точку</button>
-
-<!-- модальне вікно -->
-<div id="modal" style="display:none;position:fixed;inset:0;background:#0005;">
-    <div style="background:#fff;padding:16px;margin:10% auto;width:320px;border-radius:8px">
-        <h3>Нова точка</h3>
-        <input id="addr" placeholder="Адреса" style="width:100%;margin-bottom:4px"><br>
-        <textarea id="descr" placeholder="Опис" style="width:100%;height:60px"></textarea><br>
-        <button id="savePoint">Зберегти</button>
-        <button onclick="closeModal()">Скасувати</button>
+    <div class="input-group">
+        <label>Ім'я:</label>
+        <input id="name" type="text" />
     </div>
+
+    <div class="input-group">
+        <label>Інклюзивність:</label>
+        <select id="loi"></select>
+    </div>
+
+    <div class="input-group">
+        <label>Email:</label>
+        <input id="email" type="text" disabled />
+    </div>
+
+    <div class="input-group">
+        <button class="btn btn-secondary" onclick="togglePassword()">Змінити пароль</button>
+    </div>
+
+    <div class="input-group" id="passwordGroup" style="display:none;">
+        <label>Новий пароль:</label>
+        <input id="password" type="password" placeholder="Введіть новий пароль" />
+    </div>
+
+    <button class="btn" id="saveBtn">Зберегти зміни</button>
+
+    <a class="btn" id="addPointBtn" style="display:none;" href="/Admin/AddPoint">Додати точку</a>
+    <a class="btn btn-secondary" id="requestsBtn" style="display:none;" href="/Admin/Requests">Модерація точок</a>
 </div>
 
-<script>
-    let currentUserRole = '';
+<div class="card">
+    <h2>Збережені точки</h2>
+    <ul id="savedPoints"></ul>
+</div>
 
-    async function loadProfile() {
-        const raw = localStorage.getItem('token');
-        if (!raw) { location.href = '/Auth/Login'; return; }
-
-        const res = await fetch('/api/user/me', { headers: { Authorization: 'Bearer ' + raw } });
-        if (!res.ok) { document.getElementById('profile').textContent = 'Error ' + res.status; return; }
-
-        const u = await res.json();
-        currentUserRole = u.role;
-        document.getElementById('profile').innerHTML = `
-        <p><b>ID:</b> ${u.id}</p>
-        <p><b>Name:</b> ${u.name}</p>
-        <p><b>Email:</b> ${u.email}</p>
-        <p><b>Role:</b> ${u.role}</p>`;
-
-        document.getElementById('addBtn').style.display = 'inline-block';
-    }
-    loadProfile();
-
-    /* ───────── modal helpers ───────── */
-    function closeModal() { document.getElementById('modal').style.display = 'none'; }
-    document.getElementById('addBtn').onclick = () => document.getElementById('modal').style.display = 'block';
-
-    document.getElementById('savePoint').onclick = async () => {
-        const addr = document.getElementById('addr').value.trim();
-        const descr = document.getElementById('descr').value.trim();
-        if (!addr) { alert('Введіть адресу'); return; }
-
-        const body = {
-            address: addr, description: descr,
-            latitude: 50.45, longitude: 30.523,   // тимчасово центр Києва; можна брати з карти
-            categories: [], lOI: 0
-        };
+@section Scripts {
+    <script>
         const token = localStorage.getItem('token');
-        const url = currentUserRole === 'admin' ? '/api/point' : '/api/pointrequest';
-        const res = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-            body: JSON.stringify(body)
-        });
-        if (res.ok) {
-            alert(currentUserRole === 'admin' ? 'Точку створено' : 'Запит на точку відправлено');
-            closeModal();
-        } else alert('Помилка: ' + res.status);
-    };
-</script>
+        if (!token) location.href = '/Auth/Login';
+
+        const inclusives = [
+            "Інклюзивність 1", "Інклюзивність 2", "Інклюзивність 3", "Інклюзивність 4", "Інклюзивність 5",
+            "Інклюзивність 6", "Інклюзивність 7", "Інклюзивність 8", "Інклюзивність 9", "Інклюзивність 10",
+            "Інклюзивність 11", "Інклюзивність 12", "Інклюзивність 13", "Інклюзивність 14", "Інклюзивність 15",
+            "Інклюзивність 16", "Інклюзивність 17", "Інклюзивність 18", "Інклюзивність 19", "Інклюзивність 20"
+        ];
+
+        const loiSelect = document.getElementById('loi');
+        inclusives.forEach(i => loiSelect.innerHTML += `<option value="${i}">${i}</option>`);
+
+        let userData;
+
+        async function loadProfile() {
+            const res = await fetch('/api/user/me', { headers: { Authorization: 'Bearer ' + token } });
+
+            if (!res.ok) {
+                alert('Помилка завантаження профілю');
+                location.href = '/Auth/Login';
+                return;
+            }
+
+            userData = await res.json();
+
+            document.getElementById('name').value = userData.name;
+            document.getElementById('email').value = userData.email;
+            loiSelect.value = userData.inclusivness[0] ?? inclusives[0];
+
+            if (userData.role === 'admin') {
+                document.getElementById('addPointBtn').style.display = 'inline-block';
+                document.getElementById('requestsBtn').style.display = 'inline-block';
+            }
+
+            await loadPoints();
+        }
+
+        async function loadPoints() {
+            const points = userData.points ?? [];
+            const list = document.getElementById('savedPoints');
+            if (points.length === 0) {
+                list.innerHTML = '<li>Збережених точок немає</li>';
+                return;
+            }
+            list.innerHTML = '';
+            for (const id of points) {
+                const res = await fetch('/api/point/' + id);
+                if (!res.ok) continue;
+                const p = await res.json();
+                list.innerHTML += `<li>${p.address}</li>`;
+            }
+        }
+
+        function togglePassword() {
+            const block = document.getElementById('passwordGroup');
+            block.style.display = block.style.display === 'none' ? 'block' : 'none';
+        }
+
+        loadProfile();
+
+        document.getElementById('saveBtn').onclick = async () => {
+            const password = document.getElementById('password').value.trim();
+
+            const body = {
+                id: userData.id,
+                name: document.getElementById('name').value.trim(),
+                role: userData.role,
+                email: userData.email,
+                points: userData.points ?? [],
+                inclusivness: [loiSelect.value],
+                hashedPassword: password ? password : userData.hashedPassword
+            };
+
+            if (!body.name) {
+                alert('Ім\'я не може бути порожнім.');
+                return;
+            }
+
+            const res = await fetch('/api/user/me', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify(body)
+            });
+
+            if (res.ok) {
+                alert('Збережено успішно!');
+                if (password) location.reload();
+            } else {
+                const errorText = await res.text();
+                alert('Помилка: ' + res.status + '\n' + errorText);
+            }
+        };
+    </script>
+}

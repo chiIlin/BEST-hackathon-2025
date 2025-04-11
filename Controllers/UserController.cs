@@ -56,6 +56,21 @@ namespace best_hackathon_2025.Controllers
             await _userRepository.DeleteAsync(id);
             return Ok("User deleted successfully");
         }
+
+        [Authorize]
+        [HttpPut("me")]
+        public async Task<IActionResult> UpdateMe([FromBody] User user)
+        {
+            var id = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (id != user.Id)
+                return BadRequest("Invalid user");
+
+            await _userRepository.UpdateAsync(id, user);
+            return Ok();
+        }
+
+
         // Controllers/UserController.cs  (додайте всередині вже існуючого класу)
         [Authorize]                     // токен обов’язковий
         [HttpGet("me")]

@@ -1,0 +1,98 @@
+﻿@page
+@inject IConfiguration Config
+<link rel="stylesheet" href="~/css/profile.css" />
+
+<h2>Додавання нової точки</h2>
+
+<div id="map" style="height:400px;border:1px solid #ccc;margin-bottom:8px;"></div>
+
+<div class="card" style="max-width:420px">
+    <input id="addr" placeholder="Адреса / назва" />
+    <textarea id="descr" placeholder="Опис"></textarea>
+
+    <div class="input-group">
+        <label>Latitude:</label>
+        <input id="lat" type="text" readonly />
+    </div>
+
+    <div class="input-group">
+        <label>Longitude:</label>
+        <input id="lng" type="text" readonly />
+    </div>
+
+    <div class="input-group">
+        <label>Інклюзивність:</label>
+        <select id="loi"></select>
+    </div>
+
+    <button class="btn" id="savePoint">Зберегти</button>
+    <p id="msg"></p>
+</div>
+
+@section Scripts {
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=@Config["GoogleMaps:ApiKey"]&callback=initMap"></script>
+
+    <script>
+        let map, marker, latLng;
+        const token = localStorage.getItem('token');
+        if (!token) location.href = '/Auth/Login';
+
+        const inclusives = [
+            "Інклюзивність 1", "Інклюзивність 2", "Інклюзивність 3", "Інклюзивність 4", "Інклюзивність 5",
+            "Інклюзивність 6", "Інклюзивність 7", "Інклюзивність 8", "Інклюзивність 9", "Інклюзивність 10",
+            "Інклюзивність 11", "Інклюзивність 12", "Інклюзивність 13", "Інклюзивність 14", "Інклюзивність 15",
+            "Інклюзивність 16", "Інклюзивність 17", "Інклюзивність 18", "Інклюзивність 19", "Інклюзивність 20"
+        ];
+
+        const loiSelect = document.getElementById('loi');
+        inclusives.forEach(i => loiSelect.innerHTML += `<option value="${i}">${i}</option>`);
+
+        function initMap() {
+            map = new google.maps.Map(document.getElementById('map'), { center: { lat: 50.45, lng: 30.523 }, zoom: 12 });
+
+            map.addListener('click', e => {
+                latLng = e.latLng;
+                if (marker) marker.setMap(null);
+                marker = new google.maps.Marker({ position: latLng, map });
+                document.getElementById('lat').value = latLng.lat();
+                document.getElementById('lng').value = latLng.lng();
+            });
+        }
+
+        document.getElementById('savePoint').onclick = async () => {
+            if (!latLng) { alert('Виберіть точку на мапі'); return; }
+
+            const address = document.getElementById('addr').value.trim();
+            const description = document.getElementById('descr').value.trim();
+
+            if (!address) { alert('Введіть адресу / назву точки'); return; }
+            if (!description) { alert('Введіть опис точки'); return; }
+
+            const body = {
+                Latitude: latLng.lat(),
+                Longitude: latLng.lng(),
+                Address: address,
+                Description: description,
+                Categories: [],
+                LOI: 0
+            };
+
+            const res = await fetch('/api/pointrequest', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                body: JSON.stringify(body)
+            });
+
+            if (res.ok) {
+                document.getElementById('msg').innerText = 'Заявку створено!';
+            } else {
+                const errorText = await res.text();
+                document.getElementById('msg').innerText = `Помилка ${res.status}: ${errorText}`;
+            }
+        };
+
+
+
+
+    </script>
+}

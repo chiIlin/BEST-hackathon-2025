@@ -1,0 +1,62 @@
+﻿/* wwwroot/css/profile.css */
+body {
+    font-family: system-ui,Arial,sans-serif;
+    margin: 0;
+    padding: 24px;
+    background: #f6f8fa
+}
+
+.card {
+    background: black;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px #0002;
+    padding: 16px;
+    max-width: 480px
+}
+
+.badge {
+    background: #ff5722;
+    color: #fff;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: .8rem;
+    margin-left: 6px
+}
+
+.btn {
+    background: #1976d2;
+    color: #fff;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 6px
+}
+
+.btn-secondary {
+    background: #607d8b
+}
+
+input, textarea {
+    width: 100%;
+    padding: 6px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin: 4px 0
+}
+
+.modal {
+    position: fixed;
+    inset: 0;
+    background: #0006;
+    display: none;
+    align-items: center;
+    justify-content: center
+}
+
+.modal-content {
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    min-width: 260px
+}

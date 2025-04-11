@@ -26,13 +26,26 @@
         }
 
         .sidebar {
-            width: 200px;
-            transition: .2s
+            width: 300px; /* було 200px */
+            transition: .2s;
+            background: #f4f4f4;
+            padding: 10px;
         }
 
             .sidebar.collapsed {
                 width: 60px
             }
+
+        .point-info {
+            margin-top: 10px;
+            border-top: 1px solid #ccc;
+            padding-top: 10px;
+        }
+
+            .point-info h3 {
+                margin-bottom: 4px;
+            }
+
     </style>
 </head>
 <body>
@@ -45,14 +58,20 @@
             <nav class="menu">
                 <ul>
                     <li><a class="active"><span class="icon">🏠</span><span class="label">Головна</span></a></li>
-                    <li><a><span class="icon">⭐</span><span class="label">Друга</span></a></li>
                 </ul>
             </nav>
+
+            <div class="point-info" id="pointInfo">
+                <h3>Інформація про точку</h3>
+                <div id="pointData">
+                    Натисніть на точку на карті
+                </div>
+            </div>
         </aside>
 
         <main class="main-content">
             <header class="topbar">
-                <input type="text" id="searchInput" placeholder="Шукати на картах" class="search-box" />
+                <input type="text" id="searchInput" placeholder="Шукати на карті" class="search-box" />
                 <a class="register-btn" href="/Auth/Register">Register</a>
                 <a class="register-btn" href="/Auth/Login">Login</a>
                 <a class="register-btn" href="/Auth/Profile">Profile</a>
@@ -66,59 +85,18 @@
 
     @section Scripts {
         <script>
-            /* ───────── sidebar toggle ───────── */
             document.getElementById('menuToggle').onclick = () => {
                 const sb = document.getElementById('sidebar');
                 sb.classList.toggle('collapsed');
             };
 
-            /* ───────── Google Maps ───────── */
             let map;
             async function initMap() {
                 const center = { lat: 50.4501, lng: 30.5234 };
                 map = new google.maps.Map(document.getElementById("map"), { zoom: 12, center });
 
-                /* 1. Завантажуємо всі точки з БД */
                 const points = await (await fetch('/api/point')).json();
                 points.forEach(addMarker);
-
-                /* 2. Режим додавання точки: натисніть "n" → клік */
-                let addMode = false;
-                document.addEventListener('keydown', e => {
-                    if (e.key === 'n') {
-                        addMode = !addMode;
-                        alert(addMode ? 'Режим додавання увімкнено' : 'Режим вимкнено');
-                    }
-                });
-
-                map.addListener('click', async e => {
-                    if (!addMode) return;
-                    const addr = prompt('Адреса / назва місця:');
-                    if (!addr) return;
-                    const descr = prompt('Опис:') ?? '';
-                    const body = {
-                        latitude: e.latLng.lat(),
-                        longitude: e.latLng.lng(),
-                        address: addr,
-                        description: descr,
-                        categories: [],
-                        lOI: 0
-                    };
-                    const token = localStorage.getItem('token');
-                    const res = await fetch('/api/point', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': 'Bearer ' + token
-                        },
-                        body: JSON.stringify(body)
-                    });
-                    if (res.ok) {
-                        const p = await res.json();
-                        addMarker(p);
-                        alert('Точку створено!');
-                    } else alert('Помилка: ' + res.status);
-                });
 
                 setupSearch();
             }
@@ -128,13 +106,23 @@
                     position: { lat: p.latitude, lng: p.longitude },
                     map, title: p.address
                 });
-                const iw = new google.maps.InfoWindow({
-                    content: `<h4>${p.address}</h4><p>${p.description ?? ''}</p><p><b>LOI:</b> ${p.loi}</p>`
+
+                m.addListener('click', () => {
+                    showPointInfo(p);
                 });
-                m.addListener('click', () => iw.open({ map, anchor: m }));
             }
 
-            /* ───────── пошук за адресою ───────── */
+            function showPointInfo(p) {
+                const container = document.getElementById('pointData');
+                container.innerHTML = `
+                                <h4>${p.address}</h4>
+                                <p>${p.description ?? '-'}</p>
+                                <p><b>LOI:</b> ${p.loi}</p>
+                                <p><b>Категорії:</b> ${(p.categories ?? []).join(', ') || '-'}</p>
+                                <p><b>Перевірено:</b> ${p.verified ? 'Так' : 'Ні'}</p>
+                            `;
+            }
+
             function setupSearch() {
                 const geocoder = new google.maps.Geocoder();
                 document.getElementById('searchInput').addEventListener('keydown', e => {
@@ -142,7 +130,8 @@
                     const q = e.target.value.trim(); if (!q) return;
                     geocoder.geocode({ address: q }, (res, status) => {
                         if (status === 'OK' && res[0]) {
-                            map.setCenter(res[0].geometry.location); map.setZoom(14);
+                            map.setCenter(res[0].geometry.location);
+                            map.setZoom(14);
                             new google.maps.Marker({ map, position: res[0].geometry.location, title: q });
                         } else alert('Не знайдено: ' + status);
                     });
@@ -150,7 +139,6 @@
             }
         </script>
 
-        <!-- Google Maps SDK -->
         <script async defer
                 src="https://maps.googleapis.com/maps/api/js?key=@Configuration["GoogleMaps:ApiKey"]&callback=initMap">
         </script>
