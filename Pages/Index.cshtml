@@ -5,98 +5,155 @@
 @{
     ViewData["Title"] = "Головна";
 }
-<div class="app-container">
-    <aside class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <span class="menu-icon" id="menuToggle" style="user-select: none;">☰</span>
-            <a href="/" class="app-name" id="appName">best_hackathon_2025</a>
-        </div>
-        <nav class="menu">
-            <ul>
-                <li><a class="active" style="user-select: none;"><span class="icon">🏠</span><span class="label">Головна</span></a></li>
-                <li><a style="user-select: none;"><span class="icon">⭐</span><span class="label">Друга</span></a></li>
-            </ul>
-        </nav>
-    </aside>
-    <main class="main-content">
-        <header class="topbar">
-           <input type="text" id="searchInput" placeholder="Шукати на картах" class="search-box" />
 
-            <a class="register-btn" href="/Auth/Register">Register</a>
-            <a class="register-btn" href="/Auth/Login">Login</a>
-            <a class="register-btn" href="/Auth/Profile">Profile</a>
-        </header>
-        <section class="map-section">
-           <div id="map" style="height: 500px; width: 100%;"></div>
-        </section>
-    </main>
-</div>
-
-@section Scripts {
-    <script>
-        const toggle = document.getElementById('menuToggle');
-        const sidebar = document.getElementById('sidebar');
-        const labels = document.querySelectorAll('.label');
-        const appName = document.getElementById('appName');
-
-        toggle.addEventListener('click', () => {
-            sidebar.classList.toggle('collapsed');
-            labels.forEach(label => label.classList.toggle('hidden'));
-            appName.classList.toggle('hidden');
-        });
-
-        let map; // глобальна змінна карти
-
-        function initMap() {
-            const center = { lat: 50.4501, lng: 30.5234 }; // Київ
-            map = new google.maps.Map(document.getElementById("map"), {
-                zoom: 12,
-                center: center,
-            });
-
-            new google.maps.Marker({
-                position: center,
-                map: map,
-                title: "Центр Києва"
-            });
-
-            setupSearch(); // ініціалізація пошуку
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewData["Title"] - BEST Hackathon</title>
+    <link rel="stylesheet" href="~/css/site.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" />
+    <style>
+        .search-box {
+            padding: 4px 8px;
+            width: 260px;
+            border-radius: 6px;
+            border: 1px solid #ccc
         }
 
-        function setupSearch() {
-            const searchInput = document.getElementById("searchInput");
-            const geocoder = new google.maps.Geocoder();
+        .sidebar.collapsed .label, .sidebar.collapsed .app-name {
+            display: none
+        }
 
-            searchInput.addEventListener("keydown", function (event) {
-                if (event.key === "Enter") {
-                    const address = searchInput.value;
-                    if (address.trim() === "") return;
+        .sidebar {
+            width: 200px;
+            transition: .2s
+        }
 
-                    geocoder.geocode({ address: address }, function (results, status) {
-                        if (status === "OK" && results[0]) {
-                            const location = results[0].geometry.location;
-                            map.setCenter(location);
-                            map.setZoom(14);
+            .sidebar.collapsed {
+                width: 60px
+            }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <span class="menu-icon" id="menuToggle" style="user-select:none;">☰</span>
+                <a href="/" class="app-name" id="appName">best_hackathon_2025</a>
+            </div>
+            <nav class="menu">
+                <ul>
+                    <li><a class="active"><span class="icon">🏠</span><span class="label">Головна</span></a></li>
+                    <li><a><span class="icon">⭐</span><span class="label">Друга</span></a></li>
+                </ul>
+            </nav>
+        </aside>
 
-                            new google.maps.Marker({
-                                map: map,
-                                position: location,
-                                title: address
-                            });
-                        } else {
-                            alert("Місце не знайдено: " + status);
-                        }
+        <main class="main-content">
+            <header class="topbar">
+                <input type="text" id="searchInput" placeholder="Шукати на картах" class="search-box" />
+                <a class="register-btn" href="/Auth/Register">Register</a>
+                <a class="register-btn" href="/Auth/Login">Login</a>
+                <a class="register-btn" href="/Auth/Profile">Profile</a>
+            </header>
+
+            <section class="map-section">
+                <div id="map" style="height:500px;width:100%;"></div>
+            </section>
+        </main>
+    </div>
+
+    @section Scripts {
+        <script>
+            /* ───────── sidebar toggle ───────── */
+            document.getElementById('menuToggle').onclick = () => {
+                const sb = document.getElementById('sidebar');
+                sb.classList.toggle('collapsed');
+            };
+
+            /* ───────── Google Maps ───────── */
+            let map;
+            async function initMap() {
+                const center = { lat: 50.4501, lng: 30.5234 };
+                map = new google.maps.Map(document.getElementById("map"), { zoom: 12, center });
+
+                /* 1. Завантажуємо всі точки з БД */
+                const points = await (await fetch('/api/point')).json();
+                points.forEach(addMarker);
+
+                /* 2. Режим додавання точки: натисніть "n" → клік */
+                let addMode = false;
+                document.addEventListener('keydown', e => {
+                    if (e.key === 'n') {
+                        addMode = !addMode;
+                        alert(addMode ? 'Режим додавання увімкнено' : 'Режим вимкнено');
+                    }
+                });
+
+                map.addListener('click', async e => {
+                    if (!addMode) return;
+                    const addr = prompt('Адреса / назва місця:');
+                    if (!addr) return;
+                    const descr = prompt('Опис:') ?? '';
+                    const body = {
+                        latitude: e.latLng.lat(),
+                        longitude: e.latLng.lng(),
+                        address: addr,
+                        description: descr,
+                        categories: [],
+                        lOI: 0
+                    };
+                    const token = localStorage.getItem('token');
+                    const res = await fetch('/api/point', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + token
+                        },
+                        body: JSON.stringify(body)
                     });
-                }
-            });
-        }
-    </script>
+                    if (res.ok) {
+                        const p = await res.json();
+                        addMarker(p);
+                        alert('Точку створено!');
+                    } else alert('Помилка: ' + res.status);
+                });
 
-    <script async defer 
-        src="https://maps.googleapis.com/maps/api/js?key=@Configuration["GoogleMaps:ApiKey"]&callback=initMap">
-    </script>
-}
+                setupSearch();
+            }
 
-}
+            function addMarker(p) {
+                const m = new google.maps.Marker({
+                    position: { lat: p.latitude, lng: p.longitude },
+                    map, title: p.address
+                });
+                const iw = new google.maps.InfoWindow({
+                    content: `<h4>${p.address}</h4><p>${p.description ?? ''}</p><p><b>LOI:</b> ${p.loi}</p>`
+                });
+                m.addListener('click', () => iw.open({ map, anchor: m }));
+            }
 
-}
+            /* ───────── пошук за адресою ───────── */
+            function setupSearch() {
+                const geocoder = new google.maps.Geocoder();
+                document.getElementById('searchInput').addEventListener('keydown', e => {
+                    if (e.key !== 'Enter') return;
+                    const q = e.target.value.trim(); if (!q) return;
+                    geocoder.geocode({ address: q }, (res, status) => {
+                        if (status === 'OK' && res[0]) {
+                            map.setCenter(res[0].geometry.location); map.setZoom(14);
+                            new google.maps.Marker({ map, position: res[0].geometry.location, title: q });
+                        } else alert('Не знайдено: ' + status);
+                    });
+                });
+            }
+        </script>
+
+        <!-- Google Maps SDK -->
+        <script async defer
+                src="https://maps.googleapis.com/maps/api/js?key=@Configuration["GoogleMaps:ApiKey"]&callback=initMap">
+        </script>
+    }
+</body>
+</html>

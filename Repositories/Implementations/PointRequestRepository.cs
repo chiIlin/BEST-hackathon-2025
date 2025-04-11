@@ -11,7 +11,7 @@ namespace best_hackathon_2025.Repositories.Implementations
 
         public PointRequestRepository(MongoDbContext context)
         {
-            _pointRequests = context.Database.GetCollection<PointRequest>("PointRequests");
+            _pointRequests = context.Database.GetCollection<PointRequest>("pointRequests");
         }
 
         public async Task<List<PointRequest>> GetAllAsync()

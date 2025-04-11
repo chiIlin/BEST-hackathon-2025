@@ -1,0 +1,31 @@
+﻿@page
+@using System.Net.Http.Headers
+<h2>Запити на точки</h2>
+<table id="tbl"></table>
+
+@section Scripts {
+    <script>
+        (async () => {
+            const token = localStorage.getItem('token');
+            if (!token) { location.href = '/Auth/Login'; return; }
+            const res = await fetch('/api/pointrequest', { headers: { Authorization: 'Bearer ' + token } });
+            if (!res.ok) { document.body.innerHTML = 'Помилка ' + res.status; return; }
+            const data = await res.json();
+            const tbl = document.getElementById('tbl');
+            tbl.innerHTML = '<tr><th>Адреса</th><th>Опис</th><th>Дії</th></tr>';
+            data.forEach(r => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${r.proposed.address}</td>
+                        <td>${r.proposed.description}</td>
+                        <td><button onclick="approve('${r.id}')">Схвалити</button></td>`;
+
+                tbl.appendChild(tr);
+            });
+            async function approve(id) {
+                const ok = await fetch('/api/pointrequest/' + id + '/approve',
+                    { method: 'POST', headers: { Authorization: 'Bearer ' + token } });
+                if (ok.ok) location.reload(); else alert('Помилка');
+            }
+        })();
+    </script>
+}

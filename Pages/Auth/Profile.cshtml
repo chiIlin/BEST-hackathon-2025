@@ -1,29 +1,69 @@
 ﻿@page
+@using Microsoft.Extensions.Configuration
+@inject IConfiguration Config
+
 <h1>User Information</h1>
+
 <div id="profile">Loading…</div>
+<button id="addBtn" style="display:none;">Додати точку</button>
+
+<!-- модальне вікно -->
+<div id="modal" style="display:none;position:fixed;inset:0;background:#0005;">
+    <div style="background:#fff;padding:16px;margin:10% auto;width:320px;border-radius:8px">
+        <h3>Нова точка</h3>
+        <input id="addr" placeholder="Адреса" style="width:100%;margin-bottom:4px"><br>
+        <textarea id="descr" placeholder="Опис" style="width:100%;height:60px"></textarea><br>
+        <button id="savePoint">Зберегти</button>
+        <button onclick="closeModal()">Скасувати</button>
+    </div>
+</div>
 
 <script>
+    let currentUserRole = '';
+
     async function loadProfile() {
         const raw = localStorage.getItem('token');
         if (!raw) { location.href = '/Auth/Login'; return; }
 
-        const res = await fetch('/api/user/me', {
-            headers: { Authorization: 'Bearer ' + raw }   // ← додаємо тут
-        });
-
-        if (res.status === 401) {
-            //localStorage.removeItem('token');
-            //location.href = '/Auth/Login';
-            console.error('DEBUG‑401', await res.text());   // ← додамо лог
-            return;
-        }
+        const res = await fetch('/api/user/me', { headers: { Authorization: 'Bearer ' + raw } });
         if (!res.ok) { document.getElementById('profile').textContent = 'Error ' + res.status; return; }
 
         const u = await res.json();
+        currentUserRole = u.role;
         document.getElementById('profile').innerHTML = `
         <p><b>ID:</b> ${u.id}</p>
         <p><b>Name:</b> ${u.name}</p>
-        <p><b>Email:</b> ${u.email}</p>`;
+        <p><b>Email:</b> ${u.email}</p>
+        <p><b>Role:</b> ${u.role}</p>`;
+
+        document.getElementById('addBtn').style.display = 'inline-block';
     }
     loadProfile();
+
+    /* ───────── modal helpers ───────── */
+    function closeModal() { document.getElementById('modal').style.display = 'none'; }
+    document.getElementById('addBtn').onclick = () => document.getElementById('modal').style.display = 'block';
+
+    document.getElementById('savePoint').onclick = async () => {
+        const addr = document.getElementById('addr').value.trim();
+        const descr = document.getElementById('descr').value.trim();
+        if (!addr) { alert('Введіть адресу'); return; }
+
+        const body = {
+            address: addr, description: descr,
+            latitude: 50.45, longitude: 30.523,   // тимчасово центр Києва; можна брати з карти
+            categories: [], lOI: 0
+        };
+        const token = localStorage.getItem('token');
+        const url = currentUserRole === 'admin' ? '/api/point' : '/api/pointrequest';
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+            body: JSON.stringify(body)
+        });
+        if (res.ok) {
+            alert(currentUserRole === 'admin' ? 'Точку створено' : 'Запит на точку відправлено');
+            closeModal();
+        } else alert('Помилка: ' + res.status);
+    };
 </script>

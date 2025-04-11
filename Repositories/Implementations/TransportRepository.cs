@@ -11,7 +11,7 @@ namespace best_hackathon_2025.Repositories.Implementations
 
         public TransportRepository(MongoDbContext context)
         {
-            _transport = context.Database.GetCollection<Transport>("Transport");
+            _transport = context.Database.GetCollection<Transport>("transport");
         }
 
         public async Task<List<Transport>> GetAllAsync() => await _transport.Find(_ => true).ToListAsync();

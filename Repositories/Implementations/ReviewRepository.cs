@@ -11,7 +11,7 @@ namespace best_hackathon_2025.Repositories.Implementations
 
         public ReviewRepository(MongoDbContext context)
         {
-            _reviews = context.Database.GetCollection<Review>("Reviews");
+            _reviews = context.Database.GetCollection<Review>("reviews");
         }
 
         public async Task<List<Review>> GetAllAsync() => await _reviews.Find(_ => true).ToListAsync();

@@ -2,6 +2,7 @@
 using best_hackathon_2025.Repositories.Implementations;
 using best_hackathon_2025.Repositories.Interfaces;
 using best_hackathon_2025.Settings;   
+using best_hackathon_2025.Services;   
 using best_hackathon_2025.Helpers;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -22,6 +23,11 @@ builder.Services.AddSwaggerGen(options =>
 
 builder.Services.AddRazorPages();
 builder.Services.AddControllers();
+
+builder.Services.Configure<GoogleMapsOptions>(
+    builder.Configuration.GetSection("GoogleMaps"));
+builder.Services.AddHttpClient<GoogleMapsService>();
+
 
 builder.Services.AddSingleton<MongoDbContext>();
 builder.Services.AddSingleton<JwtTokenGenerator>();

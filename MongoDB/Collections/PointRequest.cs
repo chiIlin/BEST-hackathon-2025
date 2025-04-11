@@ -1,21 +1,26 @@
-﻿using MongoDB.Bson.Serialization.Attributes;
+﻿// MongoDB/Collections/PointRequest.cs
 using MongoDB.Bson;
-using best_hackathon_2025.MongoDB.Collections;
+using MongoDB.Bson.Serialization.Attributes;
 
+namespace best_hackathon_2025.MongoDB.Collections;
 
-namespace best_hackathon_2025.MongoDB.Collections
+public class PointRequest
 {
-    public class PointRequest
-    {
-        [BsonId]
-        [BsonRepresentation(BsonType.ObjectId)]
-        public string Id { get; set; }
+    [BsonId, BsonRepresentation(BsonType.ObjectId)]
+    public string Id { get; set; } = null!;
 
-        [BsonRepresentation(BsonType.ObjectId)]
-        public string PointId {get; set;}
+    public string UserId { get; set; } = null!;
 
-        [BsonRepresentation(BsonType.ObjectId)]
-        public string UserId { get; set;}
+    /* запропонована точка (embedded) */
+    public ProposedPoint Proposed { get; set; } = null!;
+}
 
-    }
+public class ProposedPoint
+{
+    public double Latitude { get; set; }
+    public double Longitude { get; set; }
+    public string Address { get; set; } = "";
+    public string Description { get; set; } = "";
+    public List<string> Categories { get; set; } = [];
+    public int LOI { get; set; }
 }
