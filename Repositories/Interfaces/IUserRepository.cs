@@ -10,6 +10,7 @@ namespace best_hackathon_2025.Repositories.Interfaces
         Task UpdateAsync(string id, User user);
         Task DeleteAsync(string id);
         Task<User> GetByEmailAsync(string email);
+        Task SavePointAsync(string userId, string pointId);
 
     }
 

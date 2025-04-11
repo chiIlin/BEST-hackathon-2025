@@ -48,6 +48,14 @@ namespace best_hackathon_2025.Controllers
             return Ok(new { token });
         }
 
+        [HttpPost("logout")]
+        public IActionResult Logout()
+        {
+            Response.Cookies.Delete("jwt");
+            return Ok();
+        }
+
+
         public record LoginRequest(string Email, string Password);
 
     }

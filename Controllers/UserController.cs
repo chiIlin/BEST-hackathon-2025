@@ -71,6 +71,8 @@ namespace best_hackathon_2025.Controllers
         }
 
 
+
+
         // Controllers/UserController.cs  (додайте всередині вже існуючого класу)
         [Authorize]                     // токен обов’язковий
         [HttpGet("me")]
@@ -82,6 +84,17 @@ namespace best_hackathon_2025.Controllers
 
             var user = await users.GetByIdAsync(id);
             return user is null ? NotFound() : Ok(user);
+        }
+
+        [Authorize]
+        [HttpPost("savePoint/{pointId}")]
+        public async Task<IActionResult> SavePoint(string pointId)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null) return Unauthorized();
+
+            await _userRepository.SavePointAsync(userId, pointId);
+            return Ok();
         }
 
     }

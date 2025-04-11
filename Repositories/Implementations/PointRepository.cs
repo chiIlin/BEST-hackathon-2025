@@ -28,6 +28,14 @@ namespace best_hackathon_2025.Repositories.Implementations
 
         public async Task DeleteAsync(string id)
             => await _points.DeleteOneAsync(x => x.Id == id);
+
+        public async Task AddReviewToPointAsync(string pointId, string reviewId)
+        {
+            var filter = Builders<Point>.Filter.Eq(x => x.Id, pointId);
+            var update = Builders<Point>.Update.AddToSet(x => x.ReviewIds, reviewId);
+            await _points.UpdateOneAsync(filter, update);
+        }
+
     }
 
 }

@@ -14,26 +14,15 @@
     <link rel="stylesheet" href="~/css/site.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" />
     <style>
-        .search-box {
-            padding: 4px 8px;
-            width: 260px;
-            border-radius: 6px;
-            border: 1px solid #ccc
-        }
-
-        .sidebar.collapsed .label, .sidebar.collapsed .app-name {
-            display: none
-        }
-
         .sidebar {
-            width: 300px; /* було 200px */
-            transition: .2s;
+            width: 300px;
             background: #f4f4f4;
             padding: 10px;
+            transition: .2s;
         }
 
             .sidebar.collapsed {
-                width: 60px
+                width: 60px;
             }
 
         .point-info {
@@ -46,37 +35,34 @@
                 margin-bottom: 4px;
             }
 
+        .review {
+            border-bottom: 1px solid #ccc;
+            margin-bottom: 4px;
+            padding-bottom: 4px;
+        }
     </style>
 </head>
 <body>
     <div class="app-container">
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
-                <span class="menu-icon" id="menuToggle" style="user-select:none;">☰</span>
+                <span class="menu-icon" id="menuToggle">☰</span>
                 <a href="/" class="app-name" id="appName">best_hackathon_2025</a>
             </div>
-            <nav class="menu">
-                <ul>
-                    <li><a class="active"><span class="icon">🏠</span><span class="label">Головна</span></a></li>
-                </ul>
-            </nav>
-
-            <div class="point-info" id="pointInfo">
-                <h3>Інформація про точку</h3>
-                <div id="pointData">
-                    Натисніть на точку на карті
-                </div>
+            <div class="point-info">
+                <h3>Інфо по точці</h3>
+                <div id="pointData">Натисніть на точку</div>
+                <div id="reviews"></div>
             </div>
         </aside>
 
         <main class="main-content">
             <header class="topbar">
-                <input type="text" id="searchInput" placeholder="Шукати на карті" class="search-box" />
+                <input type="text" id="searchInput" placeholder="Шукати" class="search-box" />
                 <a class="register-btn" href="/Auth/Register">Register</a>
                 <a class="register-btn" href="/Auth/Login">Login</a>
                 <a class="register-btn" href="/Auth/Profile">Profile</a>
             </header>
-
             <section class="map-section">
                 <div id="map" style="height:500px;width:100%;"></div>
             </section>
@@ -86,42 +72,101 @@
     @section Scripts {
         <script>
             document.getElementById('menuToggle').onclick = () => {
-                const sb = document.getElementById('sidebar');
-                sb.classList.toggle('collapsed');
+                document.getElementById('sidebar').classList.toggle('collapsed');
             };
 
-            let map;
+            let map, userToken = localStorage.getItem('token');
+
             async function initMap() {
                 const center = { lat: 50.4501, lng: 30.5234 };
                 map = new google.maps.Map(document.getElementById("map"), { zoom: 12, center });
-
                 const points = await (await fetch('/api/point')).json();
                 points.forEach(addMarker);
-
                 setupSearch();
+            }
+
+            function getColor(loi) {
+                if (loi <= 3) return "http://maps.google.com/mapfiles/ms/icons/red-dot.png";
+                if (loi <= 7) return "http://maps.google.com/mapfiles/ms/icons/yellow-dot.png";
+                return "http://maps.google.com/mapfiles/ms/icons/green-dot.png";
             }
 
             function addMarker(p) {
                 const m = new google.maps.Marker({
                     position: { lat: p.latitude, lng: p.longitude },
-                    map, title: p.address
+                    map, icon: getColor(p.loi)
                 });
+                m.addListener('click', () => showPointInfo(p));
+            }
 
-                m.addListener('click', () => {
-                    showPointInfo(p);
+            async function showPointInfo(p) {
+                document.getElementById('pointData').innerHTML = `
+                    <h4>${p.address}</h4>
+                    <p>${p.description}</p>
+                    <p><b>LOI:</b> ${p.loi}</p>
+                    <p><b>Категорії:</b> ${(p.categories ?? []).join(', ') || '-'}</p>
+                    <p><b>Перевірено:</b> ${p.verified ? 'Так' : 'Ні'}</p>
+                    ${userToken ? `<button onclick="savePoint('${p.id}')">Зберегти точку</button>` : ''}
+                    ${userToken ? `
+                        <div>
+                          <textarea id="rev" placeholder="Відгук"></textarea>
+                          <input id="rate" type="number" min="0" max="5" placeholder="Оцінка (0-5)" />
+                          <button onclick="addReview('${p.id}')">Додати відгук</button>
+                        </div>`: ''
+                    }
+                `;
+                loadReviews(p.id);
+            }
+
+            async function loadReviews(pointId) {
+                const res = await fetch('/api/review/byPoint/' + pointId);
+                const rev = await res.json();
+                const rblock = document.getElementById('reviews');
+                rblock.innerHTML = "<h4>Відгуки:</h4>";
+                if (rev.length == 0) rblock.innerHTML += "<p>Немає</p>";
+                rev.forEach(r => {
+                    rblock.innerHTML += `<div class="review"><b>Оцінка:</b> ${r.rating}<br/>${r.reviewText}</div>`;
                 });
             }
 
-            function showPointInfo(p) {
-                const container = document.getElementById('pointData');
-                container.innerHTML = `
-                                <h4>${p.address}</h4>
-                                <p>${p.description ?? '-'}</p>
-                                <p><b>LOI:</b> ${p.loi}</p>
-                                <p><b>Категорії:</b> ${(p.categories ?? []).join(', ') || '-'}</p>
-                                <p><b>Перевірено:</b> ${p.verified ? 'Так' : 'Ні'}</p>
-                            `;
+            async function addReview(pointId) {
+                const body = {
+                    pointId: pointId,
+                    reviewText: document.getElementById('rev').value,
+                    rating: +document.getElementById('rate').value
+                };
+
+                const res = await fetch('/api/review', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + userToken
+                    },
+                    body: JSON.stringify(body)
+                });
+
+                if (res.ok) {
+                    alert('Відгук додано');
+                    loadReviews(pointId);
+                } else {
+                    const err = await res.text();
+                    alert('Помилка: ' + err);
+                }
             }
+
+
+
+
+
+
+            async function savePoint(id) {
+                const res = await fetch('/api/user/savePoint/' + id, {
+                    method: 'POST',
+                    headers: { Authorization: 'Bearer ' + userToken }
+                });
+                if (res.ok) alert('Збережено'); else alert('Помилка');
+            }
+
 
             function setupSearch() {
                 const geocoder = new google.maps.Geocoder();
@@ -132,16 +177,12 @@
                         if (status === 'OK' && res[0]) {
                             map.setCenter(res[0].geometry.location);
                             map.setZoom(14);
-                            new google.maps.Marker({ map, position: res[0].geometry.location, title: q });
-                        } else alert('Не знайдено: ' + status);
+                        } else alert('Не знайдено');
                     });
                 });
             }
         </script>
-
-        <script async defer
-                src="https://maps.googleapis.com/maps/api/js?key=@Configuration["GoogleMaps:ApiKey"]&callback=initMap">
-        </script>
+        <script async defer src="https://maps.googleapis.com/maps/api/js?key=@Configuration["GoogleMaps:ApiKey"]&callback=initMap"></script>
     }
 </body>
 </html>

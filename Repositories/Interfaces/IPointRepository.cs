@@ -9,6 +9,8 @@ namespace best_hackathon_2025.Repositories.Interfaces
         Task CreateAsync(Point point);
         Task UpdateAsync(string id, Point point);
         Task DeleteAsync(string id);
+        Task AddReviewToPointAsync(string pointId, string reviewId);
+
     }
 
 }

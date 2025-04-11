@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using best_hackathon_2025.Repositories.Interfaces;
 using best_hackathon_2025.MongoDB.Collections;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace best_hackathon_2025.Controllers
 {
@@ -26,12 +28,28 @@ namespace best_hackathon_2025.Controllers
             return review == null ? NotFound("Review not found") : Ok(review);
         }
 
+        [Authorize]
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] Review review)
+        public async Task<IActionResult> Create([FromBody] ReviewRequest request, [FromServices] IPointRepository points)
         {
+            var review = new Review
+            {
+                PointId = request.PointId,
+                ReviewText = request.ReviewText,
+                Rating = request.Rating,
+                UserId = User.FindFirstValue(ClaimTypes.NameIdentifier),
+                TimeCreated = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")
+            };
+
             await _reviewRepository.CreateAsync(review);
-            return Ok("Review created successfully");
+
+            // Додаємо Review.Id у Point
+            await points.AddReviewToPointAsync(review.PointId, review.Id);
+
+            return Ok("Review created");
         }
+
+
 
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(string id, [FromBody] Review review)
@@ -53,5 +71,18 @@ namespace best_hackathon_2025.Controllers
             await _reviewRepository.DeleteAsync(id);
             return Ok("Review deleted successfully");
         }
+
+        [HttpGet("byPoint/{pointId}")]
+        public async Task<IActionResult> GetByPoint(string pointId)
+        {
+            var reviews = await _reviewRepository.GetAllAsync();
+            var filtered = reviews.Where(x => x.PointId == pointId).ToList();
+
+            if (filtered.Count == 0)
+                return NotFound();
+
+            return Ok(filtered);
+        }
+
     }
 }

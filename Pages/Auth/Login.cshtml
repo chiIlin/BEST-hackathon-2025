@@ -1,15 +1,16 @@
 ﻿@page
 <h2>Login</h2>
+
 <label>Email <input id="email"></label>
 <br>
 <label>Password <input id="pwd" type="password"></label>
 <br>
-<button onclick="login()">Sign in</button>
+<button onclick="login()">Sign in</button>
 <p id="msg"></p>
 
 <script>
     async function login() {
-        const res = await fetch('/api/auth/login', {
+        const res = await fetch('/api/Auth/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -18,10 +19,14 @@
             })
         });
 
-        if (!res.ok) { document.getElementById('msg').textContent = 'Wrong credentials'; return; }
+        if (!res.ok) {
+            document.getElementById('msg').textContent = 'Wrong credentials';
+            return;
+        }
 
         const { token } = await res.json();
-        localStorage.setItem('token', token);            // ← без Bearer
-        location.href = '/Auth/Profile';
+        localStorage.setItem('token', token); // кладемо токен в localStorage без Bearer
+
+        location.href = '/Auth/Profile'; // перекидуємо в профіль
     }
 </script>
