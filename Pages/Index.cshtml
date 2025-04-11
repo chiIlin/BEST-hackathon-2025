@@ -1,12 +1,43 @@
 ﻿@page
-@model IndexModel
+@model best_hackathon_2025.Pages.IndexModel
 @{
-    ViewData["Title"] = "Home page";
+    ViewData["Title"] = "Головна";
 }
-
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-   
-
+<div class="app-container">
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <span class="menu-icon" id="menuToggle" style="user-select: none;">☰</span>
+            <a href="/" class="app-name" id="appName">best_hackathon_2025</a>
+        </div>
+        <nav class="menu">
+            <ul>
+                <li><a class="active" style="user-select: none;"><span class="icon">🏠</span><span class="label">Головна</span></a></li>
+                <li><a style="user-select: none;"><span class="icon">⭐</span><span class="label">Друга</span></a></li>
+            </ul>
+        </nav>
+    </aside>
+    <main class="main-content">
+        <header class="topbar">
+            <input type="text" placeholder="Шукати на картах" class="search-box" />
+            <a class="register-btn" href="/Auth/Register">Register</a>
+        </header>
+        <section class="map-section">
+            <img src="/images/map-placeholder.png" alt="Карта" class="map-image" />
+        </section>
+    </main>
 </div>
+
+@section Scripts {
+    <script>
+        const toggle = document.getElementById('menuToggle');
+        const sidebar = document.getElementById('sidebar');
+        const labels = document.querySelectorAll('.label');
+        const appName = document.getElementById('appName');
+
+        toggle.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+            labels.forEach(label => label.classList.toggle('hidden'));
+            appName.classList.toggle('hidden');
+        });
+    </script>
+}

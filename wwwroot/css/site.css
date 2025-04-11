@@ -1,22 +1,135 @@
-html {
-  font-size: 14px;
-}
-
-@media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
-}
-
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
-
-html {
-  position: relative;
-  min-height: 100%;
-}
-
 body {
-  margin-bottom: 60px;
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #1e1e1e;
+  color: white;
+}
+
+.app-container {
+  display: flex;
+  height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+  background-color: #2c2c2c;
+  width: 250px;
+  display: flex;
+  flex-direction: column;
+  padding: 15px;
+  transition: width 0.3s ease;
+}
+
+.sidebar.collapsed {
+  width: 60px;
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  font-size: 18px;
+  margin-bottom: 30px;
+}
+
+.menu-icon {
+  font-size: 24px;
+  margin-right: 10px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.app-name {
+  font-weight: bold;
+}
+
+.app-name.hidden {
+  display: none;
+}
+
+.menu ul {
+  list-style: none;
+  padding: 0;
+}
+
+.menu li {
+  margin-bottom: 15px;
+}
+
+.menu a {
+  color: white;
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  background-color: transparent;
+  transition: background 0.2s;
+  user-select: none;
+}
+
+.menu a:hover,
+.menu a.active {
+  background-color: #3c3c3c;
+}
+
+.icon {
+  margin-right: 10px;
+}
+
+.label.hidden {
+  display: none;
+}
+
+/* Main content */
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.search-box {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: none;
+  font-size: 14px;
+  width: 300px;
+}
+
+.register-btn {
+  background-color: #2e7d32;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+/* Map section */
+.map-section {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.map-image {
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 8px;
+}
+
+/* Стиль для посилання на головну */
+.sidebar-header .app-name {
+  text-decoration: none;
+  color: inherit;
 }
