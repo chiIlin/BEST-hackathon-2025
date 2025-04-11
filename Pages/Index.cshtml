@@ -20,7 +20,8 @@
     </aside>
     <main class="main-content">
         <header class="topbar">
-            <input type="text" placeholder="Шукати на картах" class="search-box" />
+           <input type="text" id="searchInput" placeholder="Шукати на картах" class="search-box" />
+
             <a class="register-btn" href="/Auth/Register">Register</a>
             <a class="register-btn" href="/Auth/Login">Login</a>
             <a class="register-btn" href="/Auth/Profile">Profile</a>
@@ -44,10 +45,11 @@
             appName.classList.toggle('hidden');
         });
 
-        // Функція для ініціалізації карти (викликається автоматично через callback)
+        let map; // глобальна змінна карти
+
         function initMap() {
             const center = { lat: 50.4501, lng: 30.5234 }; // Київ
-            const map = new google.maps.Map(document.getElementById("map"), {
+            map = new google.maps.Map(document.getElementById("map"), {
                 zoom: 12,
                 center: center,
             });
@@ -57,12 +59,44 @@
                 map: map,
                 title: "Центр Києва"
             });
+
+            setupSearch(); // ініціалізація пошуку
+        }
+
+        function setupSearch() {
+            const searchInput = document.getElementById("searchInput");
+            const geocoder = new google.maps.Geocoder();
+
+            searchInput.addEventListener("keydown", function (event) {
+                if (event.key === "Enter") {
+                    const address = searchInput.value;
+                    if (address.trim() === "") return;
+
+                    geocoder.geocode({ address: address }, function (results, status) {
+                        if (status === "OK" && results[0]) {
+                            const location = results[0].geometry.location;
+                            map.setCenter(location);
+                            map.setZoom(14);
+
+                            new google.maps.Marker({
+                                map: map,
+                                position: location,
+                                title: address
+                            });
+                        } else {
+                            alert("Місце не знайдено: " + status);
+                        }
+                    });
+                }
+            });
         }
     </script>
 
     <script async defer 
         src="https://maps.googleapis.com/maps/api/js?key=@Configuration["GoogleMaps:ApiKey"]&callback=initMap">
     </script>
+}
+
 }
 
 }
