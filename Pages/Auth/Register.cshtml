@@ -29,3 +29,37 @@
 {
     <p>@Model.Message</p>
 }
+
+<script>
+    // Слухаємо повідомлення від основного вікна
+    window.addEventListener('message', (event) => {
+        // Перевіряємо, чи повідомлення прийшло з правильного джерела
+        if (event.origin !== window.location.origin) {
+            console.error('Невідоме джерело повідомлення');
+            return;
+        }
+
+        const { token } = event.data;
+        if (!token) {
+            alert('Токен не отримано');
+            window.location.href = '/Error';
+            return;
+        }
+
+        // Виконуємо запит на сервер для перевірки токена
+        fetch('/api/auth/validate-token', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ token })
+        }).then(response => {
+            if (!response.ok) {
+                alert('Недійсний токен');
+                window.location.href = '/Error';
+            } else {
+                console.log('Токен успішно перевірено');
+            }
+        });
+    });
+</script>

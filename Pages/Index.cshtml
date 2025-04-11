@@ -45,14 +45,27 @@
 
     @section Scripts {
         <script>
-            function openRegisterWindow() {
+            async function openRegisterWindow() {
                 const width = 400;
                 const height = 600;
                 const left = (window.screen.width - width) / 2;
                 const top = (window.screen.height - height) / 2;
 
+                // Отримуємо токен із сервера
+                const response = await fetch('/api/auth/generate-token');
+                if (!response.ok) {
+                    alert('Не вдалося отримати токен');
+                    return;
+                }
+                const { token } = await response.json();
+
                 // Відкриваємо нове вікно для реєстрації
-                window.open('/Auth/Register', 'RegisterWindow', `width=${width},height=${height},top=${top},left=${left},resizable=no,scrollbars=yes`);
+                const registerWindow = window.open('/Auth/Register', 'RegisterWindow', `width=${width},height=${height},top=${top},left=${left},resizable=no,scrollbars=yes`);
+
+                // Передаємо токен у нове вікно через postMessage
+                registerWindow.onload = () => {
+                    registerWindow.postMessage({ token }, window.location.origin);
+                };
             }
 
             /* ───────── sidebar toggle ───────── */

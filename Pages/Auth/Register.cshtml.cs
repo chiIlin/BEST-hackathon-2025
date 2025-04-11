@@ -4,10 +4,14 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using System.Collections.Concurrent;
 
 public class RegisterModel : PageModel
 {
     private readonly IUserRepository _userRepository;
+
+    // Сховище для тимчасових токенів (можна замінити на базу даних)
+    private static readonly ConcurrentDictionary<string, DateTime> TokenStore = new();
 
     public RegisterModel(IUserRepository userRepository)
     {
@@ -26,22 +30,23 @@ public class RegisterModel : PageModel
         public string Password { get; set; }
     }
 
+    public IActionResult OnGet()
+    {
+        // Більше не перевіряємо токен тут
+        return Page();
+    }
+
     public async Task<IActionResult> OnPostAsync()
     {
-        Console.WriteLine("Register Attempt");
-
         if (!ModelState.IsValid)
         {
-            Console.WriteLine("Model is invalid");
+            Message = "Invalid input";
             return Page();
         }
-
-        Console.WriteLine($"Trying to register user: {Input.Email}");
 
         var existingUser = await _userRepository.GetByEmailAsync(Input.Email);
         if (existingUser != null)
         {
-            Console.WriteLine("User already exists in DB");
             Message = "User already exists";
             return Page();
         }
@@ -54,12 +59,16 @@ public class RegisterModel : PageModel
             Role = "user"
         };
 
-        Console.WriteLine("Creating user in DB...");
         await _userRepository.CreateAsync(user);
-        Console.WriteLine("User created successfully!");
-  
         Message = "Registration successful!";
         return RedirectToPage("/Auth/Login");
     }
 
+    // Метод для генерації токена
+    public static string GenerateToken()
+    {
+        var token = Guid.NewGuid().ToString();
+        TokenStore[token] = DateTime.UtcNow.AddMinutes(10); // Токен дійсний 10 хвилин
+        return token;
+    }
 }

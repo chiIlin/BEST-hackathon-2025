@@ -6,7 +6,7 @@ using best_hackathon_2025.Helpers;
 namespace best_hackathon_2025.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/auth")]
     public class AuthController : ControllerBase
     {
         private readonly IUserRepository _userRepository;
@@ -48,8 +48,36 @@ namespace best_hackathon_2025.Controllers
             return Ok(new { token });
         }
 
-        public record LoginRequest(string Email, string Password);
+        [HttpGet("generate-token")]
+        public IActionResult GenerateToken()
+        {
+            var token = TokenManager.GenerateToken();
+            return Ok(new { token });
+        }
 
+        [HttpPost("validate-token")]
+        public IActionResult ValidateToken([FromBody] TokenValidationRequest request)
+        {
+            if (string.IsNullOrEmpty(request.Token))
+            {
+                Console.WriteLine("Токен відсутній у запиті.");
+                return Unauthorized("Token is missing");
+            }
+
+            if (!TokenManager.ValidateToken(request.Token, out var expiry))
+            {
+                Console.WriteLine($"Токен {request.Token} недійсний або прострочений.");
+                return Unauthorized("Invalid or expired token");
+            }
+
+            // Видаляємо токен після перевірки
+            TokenManager.RemoveToken(request.Token);
+            Console.WriteLine($"Токен {request.Token} успішно перевірено.");
+            return Ok();
+        }
+
+        public record LoginRequest(string Email, string Password);
+        public record TokenValidationRequest(string Token);
     }
 
     public class RegisterRequest
@@ -57,5 +85,10 @@ namespace best_hackathon_2025.Controllers
         public string Name { get; set; }
         public string Email { get; set; }
         public string Password { get; set; }
+        
+        public static string GenerateToken()
+        {
+            return TokenManager.GenerateToken();
+        }
     }
 }
