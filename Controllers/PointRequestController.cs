@@ -4,6 +4,7 @@ using best_hackathon_2025.Repositories.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using MongoDB.Bson;
 
 namespace best_hackathon_2025.Controllers;
 
@@ -66,6 +67,21 @@ public class PointRequestController : ControllerBase
         await _pointRepo.CreateAsync(p);
         await _reqRepo.DeleteAsync(id);
         return Ok(p);
+    }
+
+    [Authorize(Roles = "admin")]
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(string id)
+    {
+        // Перевіряємо, чи id є валідним ObjectId
+        if (!ObjectId.TryParse(id, out _))
+            return BadRequest("Невалідний ідентифікатор заявки");
+
+        var request = await _reqRepo.GetByIdAsync(id);
+        if (request == null) return NotFound("Запит не знайдено");
+
+        await _reqRepo.DeleteAsync(id);
+        return Ok("Запит успішно видалено");
     }
 
     public record ProposedDto(

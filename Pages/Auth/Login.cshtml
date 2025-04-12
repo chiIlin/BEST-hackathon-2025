@@ -1,12 +1,19 @@
 ﻿@page
-<h2>Login</h2>
+<link rel="stylesheet" href="/css/Login.css" />
 
-<label>Email <input id="email"></label>
-<br>
-<label>Password <input id="pwd" type="password"></label>
-<br>
-<button onclick="login()">Sign in</button>
-<p id="msg"></p>
+<div class="auth-container">
+    <h2>Вхід</h2>
+    <form class="auth-form">
+        <label for="email">Email</label>
+        <input id="email" type="email" placeholder="Введіть ваш email" />
+        
+        <label for="pwd">Пароль</label>
+        <input id="pwd" type="password" placeholder="Введіть ваш пароль" />
+        
+        <button type="button" onclick="login()">Увійти</button>
+        <p id="msg" class="error-message"></p>
+    </form>
+</div>
 
 <script>
     async function login() {
@@ -20,13 +27,13 @@
         });
 
         if (!res.ok) {
-            document.getElementById('msg').textContent = 'Wrong credentials';
+            document.getElementById('msg').textContent = 'Невірні дані для входу';
             return;
         }
 
         const { token } = await res.json();
-        localStorage.setItem('token', token); // кладемо токен в localStorage без Bearer
+        localStorage.setItem('token', token);
 
-        location.href = '/Auth/Profile'; // перекидуємо в профіль
+        location.href = '/Auth/Profile';
     }
 </script>
