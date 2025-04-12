@@ -1,0 +1,62 @@
+.admin-container {
+    max-width: 800px;
+    margin: 50px auto;
+    padding: 20px;
+    background: #2a2a3b;
+    color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.map-container {
+    height: 400px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+}
+
+.requests-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.requests-table th, .requests-table td {
+    padding: 10px;
+    border: 1px solid #444;
+    text-align: left;
+}
+
+.requests-table th {
+    background: #3a3a4f;
+    color: #fff;
+}
+
+.requests-table tr:nth-child(even) {
+    background: #2a2a3b;
+}
+
+.btn {
+    background: #4caf50;
+    color: #fff;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-secondary {
+    background: #607d8b;
+}
+
+.btn:hover {
+    background: #45a049;
+}
+
+.btn-map {
+    background: #1976d2;
+}
+
+.btn-map:hover {
+    background: #1565c0;
+}

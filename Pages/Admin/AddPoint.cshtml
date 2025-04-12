@@ -1,62 +1,60 @@
 ﻿@page
 @inject IConfiguration Config
-<link rel="stylesheet" href="~/css/profile.css" />
+<link rel="stylesheet" href="/css/AddPoint.css" />
 
-<h2>Додавання нової точки</h2>
+<div class="admin-container">
+    <h2>Додавання нової точки</h2>
 
-<div id="map" style="height:400px;border:1px solid #ccc;margin-bottom:8px;"></div>
+    <div id="map" class="map-container"></div>
 
-<div class="card" style="max-width:420px">
-    <input id="addr" placeholder="Адреса / назва" />
-    <textarea id="descr" placeholder="Опис"></textarea>
+    <div class="form-container">
+        <label for="addr">Адреса / назва</label>
+        <input id="addr" type="text" placeholder="Введіть адресу або назву" />
 
-    <div class="input-group">
-        <label>Latitude:</label>
+        <label for="descr">Опис</label>
+        <textarea id="descr" placeholder="Введіть опис"></textarea>
+
+        <label for="lat">Latitude</label>
         <input id="lat" type="text" readonly />
-    </div>
 
-    <div class="input-group">
-        <label>Longitude:</label>
+        <label for="lng">Longitude</label>
         <input id="lng" type="text" readonly />
-    </div>
 
-    <div class="input-group">
-        <label>Інклюзивність:</label>
+        <label for="loi">Інклюзивність</label>
         <select id="loi"></select>
-    </div>
 
-    <button class="btn" id="savePoint">Зберегти</button>
-    <p id="msg"></p>
+        <button id="savePoint" class="btn">Зберегти</button>
+        <p id="msg" class="status-message"></p>
+    </div>
 </div>
 
 @section Scripts {
     <script async defer src="https://maps.googleapis.com/maps/api/js?key=@Config["GoogleMaps:ApiKey"]&callback=initMap"></script>
-
     <script>
         let map, marker, latLng;
         const token = localStorage.getItem('token');
         if (!token) location.href = '/Auth/Login';
 
         const inclusives = [
-            "Інклюзивність 1", "Інклюзивність 2", "Інклюзивність 3", "Інклюзивність 4", "Інклюзивність 5",
-            "Інклюзивність 6", "Інклюзивність 7", "Інклюзивність 8", "Інклюзивність 9", "Інклюзивність 10",
-            "Інклюзивність 11", "Інклюзивність 12", "Інклюзивність 13", "Інклюзивність 14", "Інклюзивність 15",
-            "Інклюзивність 16", "Інклюзивність 17", "Інклюзивність 18", "Інклюзивність 19", "Інклюзивність 20"
+            "Пандус", "Ліфт", "Тактильна плитка", "Звукові сигнали", "Дублювання тексту шрифтом Брайля"
         ];
 
-        const loiSelect = document.getElementById('loi');
-        inclusives.forEach(i => loiSelect.innerHTML += `<option value="${i}">${i}</option>`);
-
         function initMap() {
-            map = new google.maps.Map(document.getElementById('map'), { center: { lat: 50.45, lng: 30.523 }, zoom: 12 });
+            map = new google.maps.Map(document.getElementById('map'), {
+                center: { lat: 49.8397, lng: 24.0297 },
+                zoom: 12
+            });
 
-            map.addListener('click', e => {
+            map.addListener('click', (e) => {
                 latLng = e.latLng;
                 if (marker) marker.setMap(null);
                 marker = new google.maps.Marker({ position: latLng, map });
                 document.getElementById('lat').value = latLng.lat();
                 document.getElementById('lng').value = latLng.lng();
             });
+
+            const loiSelect = document.getElementById('loi');
+            inclusives.forEach(i => loiSelect.innerHTML += `<option value="${i}">${i}</option>`);
         }
 
         document.getElementById('savePoint').onclick = async () => {
@@ -84,15 +82,11 @@
             });
 
             if (res.ok) {
-                document.getElementById('msg').innerText = 'Заявку створено!';
+                document.getElementById('msg').innerText = 'Точку додано!';
             } else {
                 const errorText = await res.text();
                 document.getElementById('msg').innerText = `Помилка ${res.status}: ${errorText}`;
             }
         };
-
-
-
-
     </script>
 }
