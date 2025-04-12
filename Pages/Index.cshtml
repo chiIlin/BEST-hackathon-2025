@@ -41,6 +41,19 @@
                     <div id="searchSuggestions" style="position:absolute; background:white; border:1px solid #ccc; z-index:99; display:none; max-height:200px; overflow-y:auto; width:250px; top: 40px;"></div>
                 </div>
             </div>
+
+            <div style="margin: 10px 0;">
+                <label>Фільтр:</label>
+                <select id="disabilityFilter" onchange="filterPoints()">
+                    <option value="all">Усі поінти</option>
+                    <option value="vision">Вади зору</option>
+                    <option value="hearing">Вади слуху</option>
+                    <option value="movement">Порушення ОРА</option>
+                    <option value="prosthesis">Протези/Ортопедія</option>
+                    <option value="coordination">Координація рухів</option>
+                </select>
+            </div>
+
             
             <div class="nav-actions">
                 
@@ -123,7 +136,7 @@
         <script>
             let map, userToken = localStorage.getItem('token');
             let directionsService, directionsRenderer, currentPosition;
-
+            let markers = [];
 
             async function getUserLocation() {
                 if (navigator.geolocation) {
@@ -171,6 +184,41 @@
                 "Пандус в транспорті",
                 "Інше"
             ];
+
+            const disabilityCategories = {
+                vision: [
+                    "Тактильна плитка",
+                    "Звукові сигнали",
+                    "Дублювання тексту шрифтом Брайля",
+                    "Вказівники для слабозорих",
+                    "Звукові оголошення"
+                ],
+                hearing: [
+                    "Дублювання інформації жестовою мовою",
+                    "Візуальні вказівники"
+                ],
+                movement: [
+                    "Пандус",
+                    "Ліфт",
+                    "Занижений бордюр",
+                    "Доступний вхід без сходів",
+                    "Широкі проходи для колясок",
+                    "Інклюзивна вбиральня",
+                    "Пандус в транспорті",
+                    "Паркування для інвалідів"
+                ],
+                prosthesis: [
+                    "Антиковзаюче покриття",
+                    "Доступний вхід без сходів",
+                    "Широкі проходи для колясок"
+                ],
+                coordination: [
+                    "Антиковзаюче покриття",
+                    "Доступний вхід без сходів",
+                    "Розмітка на підлозі"
+                ]
+            };
+
 
 
             function clearPolylines() {
@@ -256,11 +304,6 @@
                     routeLocked = true;
                 });
             }
-
-
-
-
-
 
             function selectRoute(index) {
                 clearPolylines();
@@ -348,17 +391,17 @@
                 
 
                 
-                // Add sample markers shown in the image
-                addCustomMarker({ lat: 49.842, lng: 24.031 }, 'red'); // Opera marker
-                addCustomMarker({ lat: 49.845, lng: 24.025 }, 'blue'); // Random blue marker
-                addCustomMarker({ lat: 49.865, lng: 24.035 }, 'blue'); // SPARTAK
-                addCustomMarker({ lat: 49.855, lng: 24.072 }, 'blue'); // Epicenter
-                addCustomMarker({ lat: 49.835, lng: 24.015 }, 'blue'); // Skrynya
-                addCustomMarker({ lat: 49.820, lng: 24.028 }, 'blue'); // Another blue marker
-                addCustomMarker({ lat: 49.815, lng: 24.060 }, 'blue'); // Another blue marker
-                addCustomMarker({ lat: 49.825, lng: 24.080 }, 'blue'); // Another blue marker
-                addCustomMarker({ lat: 49.805, lng: 24.070 }, 'blue'); // Another blue marker
-                addCustomMarker({ lat: 49.800, lng: 24.090 }, 'green'); // Arena Lviv
+                // // Add sample markers shown in the image
+                // addCustomMarker({ lat: 49.842, lng: 24.031 }, 'red'); // Opera marker
+                // addCustomMarker({ lat: 49.845, lng: 24.025 }, 'blue'); // Random blue marker
+                // addCustomMarker({ lat: 49.865, lng: 24.035 }, 'blue'); // SPARTAK
+                // addCustomMarker({ lat: 49.855, lng: 24.072 }, 'blue'); // Epicenter
+                // addCustomMarker({ lat: 49.835, lng: 24.015 }, 'blue'); // Skrynya
+                // addCustomMarker({ lat: 49.820, lng: 24.028 }, 'blue'); // Another blue marker
+                // addCustomMarker({ lat: 49.815, lng: 24.060 }, 'blue'); // Another blue marker
+                // addCustomMarker({ lat: 49.825, lng: 24.080 }, 'blue'); // Another blue marker
+                // addCustomMarker({ lat: 49.805, lng: 24.070 }, 'blue'); // Another blue marker
+                // addCustomMarker({ lat: 49.800, lng: 24.090 }, 'green'); // Arena Lviv
 
                 const points = await (await fetch('/api/point')).json();
                 points.forEach(addMarker);
@@ -464,7 +507,30 @@
                         `;
                     }
                 });
+                markers.push(m);
             }
+
+            function filterPoints() {
+                const type = document.getElementById('disabilityFilter').value;
+
+                // Прибираємо всі маркери
+                markers.forEach(m => m.setMap(null));
+
+                if (type === 'all') {
+                    markers.forEach(m => m.setMap(map));
+                    return;
+                }
+
+                const requiredCategories = disabilityCategories[type];
+
+                markers.forEach((m, idx) => {
+                    const point = allPoints[idx];
+                    if (point.categories && point.categories.some(c => requiredCategories.includes(c))) {
+                        m.setMap(map);
+                    }
+                });
+            }
+
 
 
             async function showPointInfo(p) {
