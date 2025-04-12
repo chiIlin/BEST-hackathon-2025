@@ -37,26 +37,26 @@
             <div class="search-container">
                 <div class="search-box">
                     <i class="bi bi-search search-icon"></i>
-                    <input type="text" id="searchInput" placeholder="Пошук" />
-                    <div id="searchSuggestions" style="position:absolute; background:white; border:1px solid #ccc; z-index:99; display:none; max-height:200px; overflow-y:auto; width:250px; top: 40px;"></div>
+                    <input type="text" id="searchInput" placeholder="Пошук" oninput="searchPoints(this.value)" />
+                    <div id="searchSuggestions" class="search-suggestions"></div>
                 </div>
             </div>
 
-            <div style="margin: 10px 0;">
-                <label>Фільтр:</label>
-                <select id="disabilityFilter" onchange="filterPoints()">
-                    <option value="all">Усі поінти</option>
-                    <option value="vision">Вади зору</option>
-                    <option value="hearing">Вади слуху</option>
-                    <option value="movement">Порушення ОРА</option>
-                    <option value="prosthesis">Протези/Ортопедія</option>
-                    <option value="coordination">Координація рухів</option>
-                </select>
+            <div class="filter-container">
+                <div class="filter-dropdown">
+                    <i class="bi bi-sliders filter-icon" onclick="toggleFilterMenu()"></i>
+                    <div class="filter-menu" id="filterMenu">
+                        <div class="filter-item" onclick="applyFilter('all')">Усі поінти</div>
+                        <div class="filter-item" onclick="applyFilter('vision')">Вади зору</div>
+                        <div class="filter-item" onclick="applyFilter('hearing')">Вади слуху</div>
+                        <div class="filter-item" onclick="applyFilter('movement')">Порушення ОРА</div>
+                        <div class="filter-item" onclick="applyFilter('prosthesis')">Протези/Ортопедія</div>
+                        <div class="filter-item" onclick="applyFilter('coordination')">Координація рухів</div>
+                    </div>
+                </div>
             </div>
 
-            
             <div class="nav-actions">
-                
                 <button id="themeToggle" class="nav-icon-button theme-toggle">
                     <i class="bi bi-moon-fill"></i>
                 </button>
@@ -78,27 +78,31 @@
                         <p class="info-item"><strong>LOI:</strong> 0</p>
                         <p class="info-item"><strong>Категорії:</strong> -</p>
                         <p class="info-item"><strong>Перевірено:</strong> Ні</p>
+                        <button class="save-point-btn">Зберегти точку</button>
                     </div>
                 </div>
 
                 <div class="reviews-section">
-                    <h2 class="section-header reviews-header">Відгуки:</h2>
+                    <h2 class="section-header">Відгуки:</h2>
                     <div id="reviews" class="reviews-container">
-                        <div class="review-placeholder"></div>
-                        <div class="review-placeholder"></div>
-                        <div class="review-placeholder"></div>
-                        <div class="review-placeholder"></div>
+                        <div class="review-placeholder">На жаль, відгуків немає(</div>
+                        <div class="review-text">Можете додати свій!</div>
+                    </div>
+                    
+                    <div class="add-review">
+                        <textarea id="rev" placeholder="Додати відгук"></textarea>
+                        <div class="rating-container">
+                            <i class="bi bi-star star-rating"></i>
+                            <i class="bi bi-star star-rating"></i>
+                            <i class="bi bi-star star-rating"></i>
+                            <i class="bi bi-star star-rating"></i>
+                            <i class="bi bi-star star-rating"></i>
+                            <input id="rate" type="hidden" value="0">
+                        </div>
+                        <button onclick="addReview()" class="add-review-btn">Додати відгук</button>
                     </div>
                 </div>
                 
-                <div class="route-instructions" style="padding: 15px; background: #f4f4f4; border-radius: 10px; margin: 10px;">
-                    <h3>Маршрут:</h3>
-                    <div id="routeSteps">
-                        <p>Щоб побудувати маршрут — натисніть на кнопку "Прокласти маршрут"</p>
-                    </div>
-                </div>
-
-
                 <div class="location-indicator">
                     <i class="bi bi-geo-alt-fill location-icon"></i>
                     <span class="location-name">Львів</span>
@@ -107,26 +111,62 @@
 
             <!-- Map Area -->
             <main class="main-content">
-                <div id="route-info-block" style="position: absolute; top: 10px; left: 10px; background: #f4f4f4; border-radius: 8px; padding: 10px; z-index: 10;">
-                    <b>Точка A:</b> <span id="pointA-text">Не обрано</span><br>
-                    <b>Точка B:</b> <span id="pointB-text">Не обрано</span><br>
-                    <button onclick="resetRoute()" style="margin-top:5px;">Очистити маршрут</button>
+                <!-- Routing Options Panel -->
+                <div class="route-panel">
+                    <div class="route-inputs">
+                        <div class="route-point">
+                            <i class="bi bi-geo-alt-fill"></i>
+                            <input type="text" id="pointAInput" placeholder="Звідки?" />
+                        </div>
+                        <div class="route-point">
+                            <i class="bi bi-geo-alt-fill"></i>
+                            <input type="text" id="pointBInput" placeholder="Куди?" />
+                        </div>
+                    </div>
+                    
+                    <div class="route-results" id="routeResults">
+                        <h3>Знайдено 3 маршрути для тебе</h3>
+                        
+                        <div class="route-option" id="route-option-0">
+                            <div class="route-info">
+                                <span class="route-number">Маршрут 1: 22 хв.</span>
+                                <span class="route-details">Вулиця - Вулиця - Вулиця.</span>
+                                <span class="route-inclusive">[Інклюзивний]</span>
+                            </div>
+                        </div>
+                        
+                        <div class="route-option" id="route-option-1">
+                            <div class="route-info">
+                                <span class="route-number">Маршрут 2: 18 хв.</span>
+                                <span class="route-details">Вулиця - Вулиця - Вулиця.</span>
+                                <span class="route-partially">[Частково інклюзивний]</span>
+                            </div>
+                        </div>
+                        
+                        <div class="route-option" id="route-option-2">
+                            <div class="route-info">
+                                <span class="route-number">Маршрут 3: 16 хв.</span>
+                                <span class="route-details">Вулиця - Вулиця - Вулиця.</span>
+                                <span class="route-non-inclusive">[Не інклюзивний]</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-
+                <!-- Map Canvas -->
                 <div id="map"></div>
+                
+                <!-- Controls -->
                 <div class="map-controls">
-                    <select id="routeType" class="route-select">
-                        <option value="walking">Пішки</option>
-                        <option value="inclusive">Інклюзивний транспорт</option>
-                        <option value="any">Будь-який транспорт</option>
-                    </select>
 
                     <button class="zoom-button zoom-in">+</button>
                     <button class="zoom-button zoom-out">−</button>
                 </div>
-                <div class="map-attribution">
-                    <img src="https://www.google.com/images/branding/googlelogo/1x/googlelogo_white_60x24dp.png" alt="Google" class="google-logo">
+
+                <div id="route-info-block" style="display: none;">
+                    <b>Точка A:</b> <span id="pointA-text">Не обрано</span><br>
+                    <b>Точка B:</b> <span id="pointB-text">Не обрано</span><br>
+                    <button onclick="resetRoute()">Очистити маршрут</button>
                 </div>
             </main>
         </div>
@@ -219,17 +259,23 @@
                 ]
             };
 
-
-
             function clearPolylines() {
                 routePolylines.forEach(p => p.setMap(null));
                 routePolylines = [];
             }
 
-
             function updatePointsInfo() {
                 document.getElementById('pointA-text').innerText = pointA ? `${pointA.lat().toFixed(5)}, ${pointA.lng().toFixed(5)}` : 'Не обрано';
                 document.getElementById('pointB-text').innerText = pointB ? `${pointB.lat().toFixed(5)}, ${pointB.lng().toFixed(5)}` : 'Не обрано';
+                
+                // Також оновлюємо поля вводу
+                if (pointA) {
+                    document.getElementById('pointAInput').value = `${pointA.lat().toFixed(5)}, ${pointA.lng().toFixed(5)}`;
+                }
+                
+                if (pointB) {
+                    document.getElementById('pointBInput').value = `${pointB.lat().toFixed(5)}, ${pointB.lng().toFixed(5)}`;
+                }
             }
 
             function resetRoute() {
@@ -241,9 +287,14 @@
                 updatePointsInfo();
                 clearPolylines();
                 directionsRenderer.set('directions', null);
+                
+                // Очищаємо поля вводу
+                document.getElementById('pointAInput').value = '';
+                document.getElementById('pointBInput').value = '';
+                
+                // Ховаємо маршрути
+                document.getElementById('routeResults').style.display = 'none';
             }
-
-
 
             async function buildRoute(A, B) {
                 const request = {
@@ -265,9 +316,11 @@
                     routes.sort((a, b) => a.legs[0].duration.value - b.legs[0].duration.value);
 
                     const colors = ['#28a745', '#ffc107', '#dc3545'];
-                    const stepsBlock = document.getElementById('routeSteps');
-                    stepsBlock.innerHTML = "<b>Оберіть маршрут:</b><br>";
-
+                    const routeResults = document.getElementById('routeResults');
+                    
+                    // Очищаємо та оновлюємо заголовок
+                    routeResults.innerHTML = '<h3>Знайдено 3 маршрути для тебе</h3>';
+                    
                     routes.forEach((route, index) => {
                         const leg = route.legs[0];
                         const duration = leg.duration.text;
@@ -277,16 +330,31 @@
                             .map(s => s.transit.line.short_name);
                         const isInclusive = transportLines.every(whitelistTransport);
                         const color = colors[index];
+                        
+                        // Визначаємо тип маршруту
+                        let inclusivityType = '';
+                        let inclusivityClass = '';
+                        
+                        if (isInclusive) {
+                            inclusivityType = '[Інклюзивний]';
+                            inclusivityClass = 'route-inclusive';
+                        } else if (index === 1) {
+                            inclusivityType = '[Частково інклюзивний]';
+                            inclusivityClass = 'route-partially';
+                        } else if (index === 2) {
+                            inclusivityType = '[Не інклюзивний]';
+                            inclusivityClass = 'route-non-inclusive';
+                        }
 
-                        const id = `route-option-${index}`;
-                        stepsBlock.innerHTML += `
-                            <div style="border-left: 5px solid ${color}; padding-left: 10px; margin-bottom: 8px;">
-                                <p style="margin:0;">
-                                    <strong>Маршрут ${index + 1}:</strong>
-                                    ${duration} · ${distance} · ${transportLines.join(', ') || 'Пішки'}
-                                    ${isInclusive ? ' <span style="color:green;">[Інклюзивний]</span>' : ''}
-                                </p>
-                                <button onclick="selectRoute(${index})">Обрати</button>
+                        // Додаємо новий елемент маршруту
+                        routeResults.innerHTML += `
+                            <div class="route-option" id="route-option-${index}" style="border-left: 5px solid ${color}">
+                                <div class="route-info">
+                                    <span class="route-number">Маршрут ${index + 1}: ${leg.duration.text}</span>
+                                    <span class="route-details">Вулиця - Вулиця - Вулиця</span>
+                                    <span class="${inclusivityClass}">${inclusivityType}</span>
+                                </div>
+                                <button onclick="selectRoute(${index})" class="select-route-btn">Обрати</button>
                             </div>
                         `;
 
@@ -300,6 +368,9 @@
                         routePolylines.push(polyline);
                     });
 
+                    // Відображаємо блок з маршрутами
+                    routeResults.style.display = 'block';
+                    
                     window.allRoutesResult = result;
                     routeLocked = true;
                 });
@@ -325,28 +396,46 @@
                 });
 
                 const leg = route.legs[0];
-                const stepsBlock = document.getElementById('routeSteps');
-                stepsBlock.innerHTML = `<h4>Інструкції маршруту ${index + 1}</h4>`;
-
+                const routeResults = document.getElementById('routeResults');
+                
+                // Оновлюємо заголовок
+                routeResults.innerHTML = `<h3>Обрано маршрут ${index + 1}</h3>`;
+                
+                // Додаємо детальні інструкції маршруту
                 leg.steps.forEach((step) => {
+                    let instructionHTML = '';
+                    
                     if (step.transit) {
-                        stepsBlock.innerHTML += `
-                            <p>🚏 Сісти на №<b>${step.transit.line.short_name}</b>
-                            з <b>${step.transit.departure_stop.name}</b> до <b>${step.transit.arrival_stop.name}</b>
-                            (${step.transit.line.vehicle.type})</p><hr>`;
+                        instructionHTML = `
+                            <div class="route-step transit-step">
+                                <div class="step-icon">🚏</div>
+                                <div class="step-detail">
+                                    <span class="route-number">№${step.transit.line.short_name}</span>
+                                    <span>з <b>${step.transit.departure_stop.name}</b> до <b>${step.transit.arrival_stop.name}</b></span>
+                                    <span>(${step.transit.line.vehicle.type})</span>
+                                </div>
+                            </div>`;
                     } else {
-                        stepsBlock.innerHTML += `
-                            <p>🚶‍♂️ ${step.instructions.replace(/<[^>]*>?/gm, '')} (${step.distance.text})</p><hr>`;
+                        instructionHTML = `
+                            <div class="route-step walk-step">
+                                <div class="step-icon">🚶‍♂️</div>
+                                <div class="step-detail">
+                                    <span>${step.instructions.replace(/<[^>]*>?/gm, '')}</span>
+                                    <span>(${step.distance.text})</span>
+                                </div>
+                            </div>`;
                     }
+                    
+                    routeResults.innerHTML += instructionHTML;
                 });
+                
+                // Додаємо кнопку для нового маршруту
+                routeResults.innerHTML += `
+                    <button onclick="resetRoute()" class="new-route-btn">Новий маршрут</button>
+                `;
             }
 
-
-
-
-
             let currentTheme = localStorage.getItem('theme') || 'dark'; // За замовчуванням темна тема
-
 
             function whitelistTransport(routeNumber) {
                 const inclusiveRoutes = ["1А","3А","5А","6А","8А","9","10","16","18","22","23","24",
@@ -354,8 +443,6 @@
                 ]; // Твій whitelist
                 return inclusiveRoutes.includes(routeNumber);
             }
-
-
 
             async function initMap() {
                 // Завантажуємо стиль карти в залежності від поточної теми
@@ -378,7 +465,15 @@
                 });
 
                 directionsService = new google.maps.DirectionsService();
-                directionsRenderer = new google.maps.DirectionsRenderer({ map: map });
+                directionsRenderer = new google.maps.DirectionsRenderer({ 
+                    map: map,
+                    suppressMarkers: true, // Приховуємо стандартні маркери A і B
+                    polylineOptions: {
+                        strokeColor: '#000000',
+                        strokeWeight: 5,
+                        strokeOpacity: 0.7
+                    }
+                });
                 
                 // Custom zoom controls
                 document.querySelector('.zoom-in').addEventListener('click', () => {
@@ -389,27 +484,14 @@
                     map.setZoom(map.getZoom() - 1);
                 });
                 
-
-                
-                // // Add sample markers shown in the image
-                // addCustomMarker({ lat: 49.842, lng: 24.031 }, 'red'); // Opera marker
-                // addCustomMarker({ lat: 49.845, lng: 24.025 }, 'blue'); // Random blue marker
-                // addCustomMarker({ lat: 49.865, lng: 24.035 }, 'blue'); // SPARTAK
-                // addCustomMarker({ lat: 49.855, lng: 24.072 }, 'blue'); // Epicenter
-                // addCustomMarker({ lat: 49.835, lng: 24.015 }, 'blue'); // Skrynya
-                // addCustomMarker({ lat: 49.820, lng: 24.028 }, 'blue'); // Another blue marker
-                // addCustomMarker({ lat: 49.815, lng: 24.060 }, 'blue'); // Another blue marker
-                // addCustomMarker({ lat: 49.825, lng: 24.080 }, 'blue'); // Another blue marker
-                // addCustomMarker({ lat: 49.805, lng: 24.070 }, 'blue'); // Another blue marker
-                // addCustomMarker({ lat: 49.800, lng: 24.090 }, 'green'); // Arena Lviv
-
                 const points = await (await fetch('/api/point')).json();
                 points.forEach(addMarker);
                 allPoints = points; // зберігаю всі поінти
 
-
                 setupSearch();
-                setupThemeToggle(); // Додаємо налаштування перемикача теми
+                setupThemeToggle();
+                setupRouteInputs();
+                setupStarRating();
                 
                 // Встановлюємо правильний клас для body при завантаженні
                 document.body.classList.toggle('light-theme', currentTheme === 'light');
@@ -440,45 +522,78 @@
 
                     updatePointsInfo();
                 });
-
-
-            }
-
-            function addCustomMarker(position, type) {
-                const iconUrl = type === 'red' ? 
-                    'http://maps.google.com/mapfiles/ms/icons/red-dot.png' : 
-                    type === 'blue' ? 
-                        'http://maps.google.com/mapfiles/ms/icons/blue-dot.png' : 
-                        'http://maps.google.com/mapfiles/ms/icons/green-dot.png';
                 
-                const marker = new google.maps.Marker({
-                    position: position,
-                    map: map,
-                    icon: {
-                        url: iconUrl,
-                        scaledSize: new google.maps.Size(32, 32)
+                // Спочатку приховуємо результати маршруту
+                document.getElementById('routeResults').style.display = 'none';
+            }
+            
+            function setupRouteInputs() {
+                // Обробка введення в поле "Звідки"
+                document.getElementById('pointAInput').addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        const searchText = this.value.trim();
+                        const point = findPointByAddress(searchText);
+                        
+                        if (point) {
+                            setPointA({lat: point.latitude, lng: point.longitude});
+                            if (pointB) buildRoute(pointA, pointB);
+                        }
                     }
                 });
-
-                marker.addListener('click', () => {
-                    if (routeLocked) return;
-                    showPointInfo({
-                        address: 'Адреса обраної точки',
-                        description: 'Опис обраної точки',
-                        loi: type === 'red' ? 3 : type === 'blue' ? 7 : 9,
-                        categories: ['Категорія 1', 'Категорія 2'],
-                        verified: true,
-                        id: 'custom-' + Math.random().toString(36).substr(2, 9),
-                        position: position
-                    });
-
-                    document.querySelector('.info-content').innerHTML += `
-                    <button onclick='setPointA(${JSON.stringify(position)})'>Задати як точку A</button>
-                    <button onclick='setPointB(${JSON.stringify(position)})'>Задати як точку B</button>
-                `;
+                
+                // Обробка введення в поле "Куди"
+                document.getElementById('pointBInput').addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        const searchText = this.value.trim();
+                        const point = findPointByAddress(searchText);
+                        
+                        if (point) {
+                            setPointB({lat: point.latitude, lng: point.longitude});
+                            if (pointA) buildRoute(pointA, pointB);
+                        }
+                    }
                 });
-
-
+            }
+            
+            function findPointByAddress(address) {
+                return allPoints.find(p => 
+                    p.address && p.address.toLowerCase().includes(address.toLowerCase())
+                );
+            }
+            
+            function setupStarRating() {
+                const stars = document.querySelectorAll('.star-rating');
+                
+                stars.forEach((star, index) => {
+                    star.addEventListener('click', () => {
+                        // Встановлюємо рейтинг
+                        document.getElementById('rate').value = index + 1;
+                        
+                        // Оновлюємо відображення зірок
+                        stars.forEach((s, i) => {
+                            if (i <= index) {
+                                s.classList.remove('bi-star');
+                                s.classList.add('bi-star-fill');
+                            } else {
+                                s.classList.remove('bi-star-fill');
+                                s.classList.add('bi-star');
+                            }
+                        });
+                    });
+                    
+                    // Додаємо ефект наведення
+                    star.addEventListener('mouseover', () => {
+                        stars.forEach((s, i) => {
+                            if (i <= index) {
+                                s.classList.add('star-hover');
+                            }
+                        });
+                    });
+                    
+                    star.addEventListener('mouseout', () => {
+                        stars.forEach(s => s.classList.remove('star-hover'));
+                    });
+                });
             }
 
             function getColor(loi) {
@@ -531,8 +646,6 @@
                 });
             }
 
-
-
             async function showPointInfo(p) {
                 document.querySelector('.info-content').innerHTML = `
                     <p class="info-item"><strong>${p.address || 'Назва місця, вулиці'}</strong></p>
@@ -540,31 +653,16 @@
                     <p class="info-item"><strong>Категорії:</strong> ${(p.categories ?? []).join(', ') || '-'}</p>
                     <p class="info-item"><strong>Перевірено:</strong> ${p.verified ? 'Так' : 'Ні'}</p>
 
-                                ${currentPosition && p.position ? `<button class="route-btn" onclick="setPointA(${JSON.stringify(p.position)})">Задати як точку A</button>
-                                                                   <button class="route-btn" onclick="setPointB(${JSON.stringify(p.position)})">Задати як точку B</button>
-            ` : ''}
-
-                    ${currentPosition && p.latitude && p.longitude ? `<button class="route-btn" onclick="buildRoute({lat: ${p.latitude}, lng: ${p.longitude}})">Прокласти маршрут</button>` : ''}
-
                     ${userToken ? `<button class="save-point-btn" onclick="savePoint('${p.id}')">Зберегти точку</button>` : ''}
 
-                    ${userToken ? `
-                        <div class="review-form">
-                          <textarea id="rev" placeholder="Відгук"></textarea>
-                          <input id="rate" type="number" min="0" max="5" placeholder="Оцінка (0-5)" />
-                          <button onclick="addReview('${p.id}')">Додати відгук</button>
-                        </div>` : ''
-                    }
-                    <div class="route-instructions">
-                        <h3>Маршрут:</h3>
-                        <div id="routeSteps"></div>
-                    </div>
+                    ${currentPosition && p.position ? `<button class="route-btn" onclick="setPointA(${JSON.stringify(p.position)})">Задати як точку A</button>
+                                                       <button class="route-btn" onclick="setPointB(${JSON.stringify(p.position)})">Задати як точку B</button>` : ''}
 
+                    ${currentPosition && p.latitude && p.longitude ? `<button class="route-btn" onclick="buildRoute({lat: ${p.latitude}, lng: ${p.longitude}})">Прокласти маршрут</button>` : ''}
                 `;
 
                 loadReviews(p.id);
             }
-
 
             async function loadReviews(pointId) {
                 try {
@@ -575,12 +673,17 @@
                     
                     if (rev.length == 0) {
                         // Add empty placeholders
-                        rblock.innerHTML += `<div class="review-placeholder">Немає коментарів :(</div>`;
+                        rblock.innerHTML += `
+                            <div class="review-placeholder">На жаль, відгуків немає(</div>
+                            <div class="review-text">Можете додати свій!</div>
+                        `;
                     } else {
                         rev.forEach(r => {
                             rblock.innerHTML += `
                                 <div class="review-item">
-                                    <div class="review-rating">Оцінка: ${r.rating}</div>
+                                    <div class="review-rating">
+                                        ${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}
+                                    </div>
                                     <div class="review-text">${r.reviewText}</div>
                                 </div>`;
                         });
@@ -588,9 +691,10 @@
                 } catch (error) {
                     // If there's an error, show placeholders
                     const rblock = document.getElementById('reviews');
-                    rblock.innerHTML = "";
-                    rblock.innerHTML += `<div class="review-placeholder">Немає коментарів :(</div>`;
-                    
+                    rblock.innerHTML = `
+                        <div class="review-placeholder">На жаль, відгуків немає(</div>
+                        <div class="review-text">Можете додати свій!</div>
+                    `;
                 }
             }
 
@@ -681,23 +785,23 @@
 
                 suggestions.innerHTML = '';
                 found.forEach(p => {
-                    suggestions.innerHTML += `
-                        <div style="padding:5px; cursor:pointer;" onclick='selectSearchPoint(${p.latitude}, ${p.longitude}, ${JSON.stringify(p)})'>${p.address}</div>
-                    `;
+                    const item = document.createElement('div');
+                    item.className = 'search-suggestion-item';
+                    item.textContent = p.address;
+                    item.onclick = () => {
+                        focusPoint(p.latitude, p.longitude);
+                        showPointInfo(p);
+                        suggestions.style.display = 'none';
+                    };
+                    suggestions.appendChild(item);
                 });
                 suggestions.style.display = 'block';
             }
-
-
-
-
 
             function focusPoint(lat, lng) {
                 map.setCenter({ lat, lng });
                 map.setZoom(16);
             }
-
-
 
             function setupSearch() {
 
@@ -771,6 +875,44 @@
                 }
             }
         </script>
+        <script>
+    function toggleFilterMenu() {
+        const menu = document.getElementById('filterMenu');
+        menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function applyFilter(filterType) {
+        toggleFilterMenu(); // Закриваємо меню після вибору
+        filterPoints(filterType); // Викликаємо існуючу функцію для фільтрації
+    }
+
+    // Модифікуємо функцію filterPoints для прийому параметра
+    function filterPoints(type = 'all') {
+        const markers = window.markers || [];
+        markers.forEach(m => m.setMap(null)); // Прибираємо всі маркери
+
+        if (type === 'all') {
+            markers.forEach(m => m.setMap(map));
+            return;
+        }
+
+        const requiredCategories = disabilityCategories[type];
+        markers.forEach((m, idx) => {
+            const point = allPoints[idx];
+            if (point.categories && point.categories.some(c => requiredCategories.includes(c))) {
+                m.setMap(map);
+            }
+        });
+    }
+
+    // Закриваємо меню при кліку поза ним
+    document.addEventListener('click', (e) => {
+        const menu = document.getElementById('filterMenu');
+        if (!menu.contains(e.target) && !e.target.classList.contains('filter-icon')) {
+            menu.style.display = 'none';
+        }
+    });
+</script>
         <script async defer src="https://maps.googleapis.com/maps/api/js?key=@Configuration["GoogleMaps:ApiKey"]&callback=initMap"></script>
     }
 </body>
