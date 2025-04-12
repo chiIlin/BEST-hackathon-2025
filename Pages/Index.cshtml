@@ -93,6 +93,13 @@
 
             <!-- Map Area -->
             <main class="main-content">
+                <div id="route-info-block" style="position: absolute; top: 10px; left: 10px; background: #f4f4f4; border-radius: 8px; padding: 10px; z-index: 10;">
+                    <b>Точка A:</b> <span id="pointA-text">Не обрано</span><br>
+                    <b>Точка B:</b> <span id="pointB-text">Не обрано</span><br>
+                    <button onclick="resetRoute()" style="margin-top:5px;">Очистити маршрут</button>
+                </div>
+
+
                 <div id="map"></div>
                 <div class="map-controls">
                     <select id="routeType" class="route-select">
@@ -131,75 +138,145 @@
                 }
             }
 
+            let routeLocked = false;
+            let destinationMarker = null;
 
-            async function buildRoute(destination) {
-                if (!currentPosition) {
-                    alert("Не вдалося отримати вашу геолокацію");
-                    return;
-                }
+            let pointA = null;
+            let pointB = null;
+            let pointAMarker = null;
+            let pointBMarker = null;
 
-                const routeType = document.getElementById("routeType").value;
-                let travelMode = google.maps.TravelMode.WALKING;
 
-                if (routeType === "any") {
-                    travelMode = google.maps.TravelMode.TRANSIT;
-                }
+            let routePolylines = [];
 
-                if (routeType === "inclusive") {
-                    travelMode = google.maps.TravelMode.TRANSIT;
-                }
+            function clearPolylines() {
+                routePolylines.forEach(p => p.setMap(null));
+                routePolylines = [];
+            }
 
+
+            function updatePointsInfo() {
+                document.getElementById('pointA-text').innerText = pointA ? `${pointA.lat().toFixed(5)}, ${pointA.lng().toFixed(5)}` : 'Не обрано';
+                document.getElementById('pointB-text').innerText = pointB ? `${pointB.lat().toFixed(5)}, ${pointB.lng().toFixed(5)}` : 'Не обрано';
+            }
+
+            function resetRoute() {
+                if (pointAMarker) pointAMarker.setMap(null);
+                if (pointBMarker) pointBMarker.setMap(null);
+                pointA = null;
+                pointB = null;
+                routeLocked = false;
+                updatePointsInfo();
+                clearPolylines();
+                directionsRenderer.set('directions', null);
+            }
+
+
+
+            async function buildRoute(A, B) {
                 const request = {
-                    origin: currentPosition,
-                    destination: destination,
-                    travelMode: travelMode
+                    origin: A,
+                    destination: B,
+                    travelMode: google.maps.TravelMode.TRANSIT,
+                    provideRouteAlternatives: true
                 };
 
-                directionsService.route(request, (result, status) => {
-                    if (status === 'OK') {
-
-                        if (routeType === 'inclusive') {
-                            const allSteps = result.routes[0].legs.flatMap(leg => leg.steps);
-                            const isInclusive = allSteps.every(step => {
-                                return !step.transit || (step.transit && whitelistTransport(step.transit.line.short_name));
-                            });
-
-                            if (!isInclusive) {
-                                alert('Немає повністю інклюзивного маршруту цим транспортом');
-                                return;
-                            }
-                        }
-
-                        directionsRenderer.setDirections(result);
-
-                        // Вивід у sidebar
-                        let stepsBlock = document.getElementById('routeSteps');
-                        stepsBlock.innerHTML = "";
-
-                        result.routes[0].legs.forEach((leg) => {
-                            leg.steps.forEach((step) => {
-                                if (step.transit) {
-                                    stepsBlock.innerHTML += `
-                                        <p>🚏 Сісти на транспорт: №${step.transit.line.short_name}</p>
-                                        <p>Зупинка: ${step.transit.departure_stop.name}</p>
-                                        <p>Їхати до зупинки: ${step.transit.arrival_stop.name}</p>
-                                        <p>Тип транспорту: ${step.transit.line.vehicle.type}</p>
-                                        <hr>
-                                    `;
-                                } else {
-                                    stepsBlock.innerHTML += `
-                                        <p>🚶‍♂️ Йти: ${step.instructions.replace(/<[^>]*>?/gm, '')} (${step.distance.text})</p>
-                                        <hr>
-                                    `;
-                                }
-                            });
-                        });
-
-                    } else {
+                directionsService.route(request, async (result, status) => {
+                    if (status !== 'OK') {
                         alert("Не вдалося побудувати маршрут");
+                        return;
+                    }
+
+                    clearPolylines();
+
+                    const routes = result.routes.slice(0, 3);
+                    routes.sort((a, b) => a.legs[0].duration.value - b.legs[0].duration.value);
+
+                    const colors = ['#28a745', '#ffc107', '#dc3545'];
+                    const stepsBlock = document.getElementById('routeSteps');
+                    stepsBlock.innerHTML = "<b>Оберіть маршрут:</b><br>";
+
+                    routes.forEach((route, index) => {
+                        const leg = route.legs[0];
+                        const duration = leg.duration.text;
+                        const distance = leg.distance.text;
+                        const transportLines = leg.steps
+                            .filter(s => s.transit)
+                            .map(s => s.transit.line.short_name);
+                        const isInclusive = transportLines.every(whitelistTransport);
+                        const color = colors[index];
+
+                        const id = `route-option-${index}`;
+                        stepsBlock.innerHTML += `
+                            <div style="border-left: 5px solid ${color}; padding-left: 10px; margin-bottom: 8px;">
+                                <p style="margin:0;">
+                                    <strong>Маршрут ${index + 1}:</strong>
+                                    ${duration} · ${distance} · ${transportLines.join(', ') || 'Пішки'}
+                                    ${isInclusive ? ' <span style="color:green;">[Інклюзивний]</span>' : ''}
+                                </p>
+                                <button onclick="selectRoute(${index})">Обрати</button>
+                            </div>
+                        `;
+
+                        const polyline = new google.maps.Polyline({
+                            path: route.overview_path,
+                            strokeColor: color,
+                            strokeOpacity: 0.9,
+                            strokeWeight: 5,
+                            map: map
+                        });
+                        routePolylines.push(polyline);
+                    });
+
+                    window.allRoutesResult = result;
+                    routeLocked = true;
+                });
+            }
+
+
+
+
+
+
+            function selectRoute(index) {
+                clearPolylines();
+
+                const route = window.allRoutesResult.routes[index];
+
+                const polyline = new google.maps.Polyline({
+                    path: route.overview_path,
+                    strokeColor: '#000000', // чорний для вибраного
+                    strokeOpacity: 1,
+                    strokeWeight: 6,
+                    map: map
+                });
+
+                routePolylines.push(polyline);
+
+                directionsRenderer.setDirections({
+                    routes: [route]
+                });
+
+                const leg = route.legs[0];
+                const stepsBlock = document.getElementById('routeSteps');
+                stepsBlock.innerHTML = `<h4>Інструкції маршруту ${index + 1}</h4>`;
+
+                leg.steps.forEach((step) => {
+                    if (step.transit) {
+                        stepsBlock.innerHTML += `
+                            <p>🚏 Сісти на №<b>${step.transit.line.short_name}</b>
+                            з <b>${step.transit.departure_stop.name}</b> до <b>${step.transit.arrival_stop.name}</b>
+                            (${step.transit.line.vehicle.type})</p><hr>`;
+                    } else {
+                        stepsBlock.innerHTML += `
+                            <p>🚶‍♂️ ${step.instructions.replace(/<[^>]*>?/gm, '')} (${step.distance.text})</p><hr>`;
                     }
                 });
             }
+
+
+
+
 
             let currentTheme = localStorage.getItem('theme') || 'dark'; // За замовчуванням темна тема
 
@@ -245,6 +322,7 @@
                     map.setZoom(map.getZoom() - 1);
                 });
                 
+
                 // Load points and add markers
                 const points = await (await fetch('/api/point')).json();
                 points.forEach(addMarker);
@@ -266,6 +344,35 @@
                 
                 // Встановлюємо правильний клас для body при завантаженні
                 document.body.classList.toggle('light-theme', currentTheme === 'light');
+
+                map.addListener('click', (e) => {
+                    if (routeLocked) return;
+
+                    if (!pointA) {
+                        pointA = e.latLng;
+                        if (pointAMarker) pointAMarker.setMap(null);
+                        pointAMarker = new google.maps.Marker({
+                            position: pointA,
+                            map: map,
+                            label: "A",
+                            animation: google.maps.Animation.DROP
+                        });
+                    } else if (!pointB) {
+                        pointB = e.latLng;
+                        if (pointBMarker) pointBMarker.setMap(null);
+                        pointBMarker = new google.maps.Marker({
+                            position: pointB,
+                            map: map,
+                            label: "B",
+                            animation: google.maps.Animation.DROP
+                        });
+                        buildRoute(pointA, pointB);
+                    }
+
+                    updatePointsInfo();
+                });
+
+
             }
 
             function addCustomMarker(position, type) {
@@ -285,6 +392,7 @@
                 });
 
                 marker.addListener('click', () => {
+                    if (routeLocked) return;
                     showPointInfo({
                         address: 'Адреса обраної точки',
                         description: 'Опис обраної точки',
@@ -294,7 +402,13 @@
                         id: 'custom-' + Math.random().toString(36).substr(2, 9),
                         position: position
                     });
+
+                    document.querySelector('.info-content').innerHTML += `
+                    <button onclick='setPointA(${JSON.stringify(position)})'>Задати як точку A</button>
+                    <button onclick='setPointB(${JSON.stringify(position)})'>Задати як точку B</button>
+                `;
                 });
+
 
             }
 
@@ -307,14 +421,25 @@
             function addMarker(p) {
                 const m = new google.maps.Marker({
                     position: { lat: p.latitude, lng: p.longitude },
-                    map, 
+                    map,
                     icon: {
                         url: getColor(p.loi),
                         scaledSize: new google.maps.Size(32, 32)
                     }
                 });
-                m.addListener('click', () => showPointInfo(p));
+
+                m.addListener('click', () => {
+                    showPointInfo(p);
+
+                    if (!routeLocked) {
+                        document.querySelector('.info-content').innerHTML += `
+                            <button onclick='setPointA({lat:${p.latitude}, lng:${p.longitude}})'>Задати як точку A</button>
+                            <button onclick='setPointB({lat:${p.latitude}, lng:${p.longitude}})'>Задати як точку B</button>
+                        `;
+                    }
+                });
             }
+
 
             async function showPointInfo(p) {
                 document.querySelector('.info-content').innerHTML = `
@@ -323,7 +448,9 @@
                     <p class="info-item"><strong>Категорії:</strong> ${(p.categories ?? []).join(', ') || '-'}</p>
                     <p class="info-item"><strong>Перевірено:</strong> ${p.verified ? 'Так' : 'Ні'}</p>
 
-                    ${currentPosition && p.position ? `<button class="route-btn" onclick="buildRoute(${JSON.stringify(p.position)})">Прокласти маршрут</button>` : ''}
+                                ${currentPosition && p.position ? `<button class="route-btn" onclick="setPointA(${JSON.stringify(p.position)})">Задати як точку A</button>
+                                                                   <button class="route-btn" onclick="setPointB(${JSON.stringify(p.position)})">Задати як точку B</button>
+            ` : ''}
 
                     ${currentPosition && p.latitude && p.longitude ? `<button class="route-btn" onclick="buildRoute({lat: ${p.latitude}, lng: ${p.longitude}})">Прокласти маршрут</button>` : ''}
 
@@ -410,6 +537,34 @@
                 });
                 if (res.ok) alert('Збережено'); else alert('Помилка');
             }
+
+            function setPointA(position) {
+                if (pointAMarker) pointAMarker.setMap(null);
+                pointA = new google.maps.LatLng(position.lat, position.lng);
+                pointAMarker = new google.maps.Marker({
+                    position: pointA,
+                    map: map,
+                    label: "A",
+                    animation: google.maps.Animation.DROP
+                });
+                updatePointsInfo();
+                if (pointB) buildRoute(pointA, pointB);
+            }
+
+            function setPointB(position) {
+                if (pointBMarker) pointBMarker.setMap(null);
+                pointB = new google.maps.LatLng(position.lat, position.lng);
+                pointBMarker = new google.maps.Marker({
+                    position: pointB,
+                    map: map,
+                    label: "B",
+                    animation: google.maps.Animation.DROP
+                });
+                updatePointsInfo();
+                if (pointA) buildRoute(pointA, pointB);
+            }
+
+
 
             function setupSearch() {
                 const geocoder = new google.maps.Geocoder();
