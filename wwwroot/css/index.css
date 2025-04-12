@@ -317,6 +317,38 @@ button:hover {
         max-height: 200px;
     }
 }
+.theme-toggle {
+    background-color: transparent; /* Повертаємо прозорий фон */
+    border: none;
+    color: white; /* Білий колір для іконки */
+    cursor: pointer;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    margin-right: 12px;
+    transition: all 0.2s ease;
+    position: relative; /* Для правильного позиціонування */
+}
+.theme-toggle:hover, 
+.nav-icon-button:hover {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+
+
+/* Прибираємо всі зайві стилі, які могли спричинити проблему */
+.nav-icon-button {
+    background: transparent;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 8px;
+    margin: 0 5px;
+}
 
 .route-instructions {
     margin-top: 20px;
