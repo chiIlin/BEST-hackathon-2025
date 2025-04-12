@@ -38,6 +38,7 @@
                 <div class="search-box">
                     <i class="bi bi-search search-icon"></i>
                     <input type="text" id="searchInput" placeholder="Пошук" />
+                    <div id="searchSuggestions" style="position:absolute; background:white; border:1px solid #ccc; z-index:99; display:none; max-height:200px; overflow-y:auto; width:250px; top: 40px;"></div>
                 </div>
             </div>
             
@@ -145,9 +146,32 @@
             let pointB = null;
             let pointAMarker = null;
             let pointBMarker = null;
-
-
+            let allPoints = []; // всі поінти
             let routePolylines = [];
+
+            const inclusivenessList = [
+                "Пандус",
+                "Ліфт",
+                "Тактильна плитка",
+                "Звукові сигнали",
+                "Дублювання тексту шрифтом Брайля",
+                "Вказівники для слабозорих",
+                "Інклюзивна вбиральня",
+                "Паркування для інвалідів",
+                "Занижений бордюр",
+                "Доступна каса",
+                "Доступний вхід без сходів",
+                "Спеціальні меблі",
+                "Дублювання інформації жестовою мовою",
+                "Розмітка на підлозі",
+                "Антиковзаюче покриття",
+                "Звукові оголошення",
+                "Доступність громадського транспорту",
+                "Широкі проходи для колясок",
+                "Пандус в транспорті",
+                "Інше"
+            ];
+
 
             function clearPolylines() {
                 routePolylines.forEach(p => p.setMap(null));
@@ -323,9 +347,6 @@
                 });
                 
 
-                // Load points and add markers
-                const points = await (await fetch('/api/point')).json();
-                points.forEach(addMarker);
                 
                 // Add sample markers shown in the image
                 addCustomMarker({ lat: 49.842, lng: 24.031 }, 'red'); // Opera marker
@@ -338,7 +359,12 @@
                 addCustomMarker({ lat: 49.825, lng: 24.080 }, 'blue'); // Another blue marker
                 addCustomMarker({ lat: 49.805, lng: 24.070 }, 'blue'); // Another blue marker
                 addCustomMarker({ lat: 49.800, lng: 24.090 }, 'green'); // Arena Lviv
-                
+
+                const points = await (await fetch('/api/point')).json();
+                points.forEach(addMarker);
+                allPoints = points; // зберігаю всі поінти
+
+
                 setupSearch();
                 setupThemeToggle(); // Додаємо налаштування перемикача теми
                 
@@ -483,9 +509,7 @@
                     
                     if (rev.length == 0) {
                         // Add empty placeholders
-                        for (let i = 0; i < 4; i++) {
-                            rblock.innerHTML += `<div class="review-placeholder"></div>`;
-                        }
+                        rblock.innerHTML += `<div class="review-placeholder">Немає коментарів :(</div>`;
                     } else {
                         rev.forEach(r => {
                             rblock.innerHTML += `
@@ -499,9 +523,8 @@
                     // If there's an error, show placeholders
                     const rblock = document.getElementById('reviews');
                     rblock.innerHTML = "";
-                    for (let i = 0; i < 4; i++) {
-                        rblock.innerHTML += `<div class="review-placeholder"></div>`;
-                    }
+                    rblock.innerHTML += `<div class="review-placeholder">Немає коментарів :(</div>`;
+                    
                 }
             }
 
@@ -564,20 +587,70 @@
                 if (pointA) buildRoute(pointA, pointB);
             }
 
+            function selectSearchPoint(lat, lng, p) {
+                focusPoint(lat, lng);
+                showPointInfo(p);
+
+                const suggestions = document.getElementById('searchSuggestions');
+                suggestions.style.display = 'none';
+                suggestions.innerHTML = '';
+            }
+
+
+            function searchPoints(query) {
+                const suggestions = document.getElementById('searchSuggestions');
+                if (!query.trim()) {
+                    suggestions.style.display = 'none';
+                    suggestions.innerHTML = '';
+                    return;
+                }
+
+                const found = allPoints.filter(p => p.address.toLowerCase().includes(query.toLowerCase()));
+
+                if (found.length === 0) {
+                    suggestions.style.display = 'none';
+                    suggestions.innerHTML = '';
+                    return;
+                }
+
+                suggestions.innerHTML = '';
+                found.forEach(p => {
+                    suggestions.innerHTML += `
+                        <div style="padding:5px; cursor:pointer;" onclick='selectSearchPoint(${p.latitude}, ${p.longitude}, ${JSON.stringify(p)})'>${p.address}</div>
+                    `;
+                });
+                suggestions.style.display = 'block';
+            }
+
+
+
+
+
+            function focusPoint(lat, lng) {
+                map.setCenter({ lat, lng });
+                map.setZoom(16);
+            }
+
 
 
             function setupSearch() {
+
                 const geocoder = new google.maps.Geocoder();
-                document.getElementById('searchInput').addEventListener('keydown', e => {
-                    if (e.key !== 'Enter') return;
-                    const q = e.target.value.trim(); if (!q) return;
-                    geocoder.geocode({ address: q }, (res, status) => {
-                        if (status === 'OK' && res[0]) {
-                            map.setCenter(res[0].geometry.location);
-                            map.setZoom(14);
-                        } else alert('Не знайдено');
-                    });
+
+                document.getElementById('searchInput').addEventListener('input', e => {
+                    searchPoints(e.target.value);
                 });
+
+                document.getElementById('searchInput').addEventListener('keydown', e => {
+                    if (e.key === 'Enter') {
+                        const query = e.target.value.toLowerCase();
+                        const found = allPoints.find(p => p.address.toLowerCase() === query);
+                        if (found) {
+                            selectSearchPoint(found.latitude, found.longitude, found);
+                        }
+                    }
+                });
+
             }
             
             // Функція для налаштування перемикача теми
