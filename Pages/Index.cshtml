@@ -8,107 +8,189 @@
 
 <!DOCTYPE html>
 <html lang="uk">
+    <link rel="stylesheet" href="~/css/index.css" asp-append-version="true" />
+
 <head>
     <meta charset="utf-8" />
-    <title>@ViewData["Title"] - BEST Hackathon</title>
+    <title>CHILLGO - Інтерактивна карта</title>
     <link rel="stylesheet" href="~/css/site.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" />
-    <style>
-        .sidebar {
-            width: 300px;
-            background: #f4f4f4;
-            padding: 10px;
-            transition: .2s;
-        }
-
-            .sidebar.collapsed {
-                width: 60px;
-            }
-
-        .point-info {
-            margin-top: 10px;
-            border-top: 1px solid #ccc;
-            padding-top: 10px;
-        }
-
-            .point-info h3 {
-                margin-bottom: 4px;
-            }
-
-        .review {
-            border-bottom: 1px solid #ccc;
-            margin-bottom: 4px;
-            padding-bottom: 4px;
-        }
-    </style>
+    <link rel="stylesheet" href="~/css/chillgo-style.css" />
 </head>
 <body>
     <div class="app-container">
-        <aside class="sidebar" id="sidebar">
-            <div class="sidebar-header">
-                <span class="menu-icon" id="menuToggle">☰</span>
-                <a href="/" class="app-name" id="appName">best_hackathon_2025</a>
+        <!-- Header/Navigation Bar -->
+        <header class="top-navbar">
+            <div class="logo-container">
+                <div class="logo-grid">
+                    <div></div><div></div><div></div>
+                    <div></div><div></div><div></div>
+                    <div></div><div></div><div></div>
+                </div>
+                <span class="brand-name">CHILLGO</span>
             </div>
-            <div class="point-info">
-                <h3>Інфо по точці</h3>
-                <div id="pointData">Натисніть на точку</div>
-                <div id="reviews"></div>
+            
+            <div class="search-container">
+                <div class="search-box">
+                    <i class="bi bi-search search-icon"></i>
+                    <input type="text" id="searchInput" placeholder="Пошук" />
+                </div>
             </div>
-        </aside>
+            
+            <div class="nav-actions">
+                <i class="bi bi-sliders"></i>
+                <a href="/Auth/Register" class="nav-link">Реєстрація</a>
+                <a href="/Auth/Login" class="nav-link">Логін</a>
+            </div>
+        </header>
 
-        <main class="main-content">
-            <header class="topbar">
-                <input type="text" id="searchInput" placeholder="Шукати" class="search-box" />
-                <a class="register-btn" href="/Auth/Register">Register</a>
-                <a class="register-btn" href="/Auth/Login">Login</a>
-                <a class="register-btn" href="/Auth/Profile">Profile</a>
-            </header>
-            <section class="map-section">
-                <div id="map" style="height:500px;width:100%;"></div>
-            </section>
-        </main>
+        <!-- Main Content with Sidebar -->
+        <div class="content-wrapper">
+            <!-- Sidebar -->
+            <aside class="sidebar" id="sidebar">
+                <div class="info-section">
+                    <h2 class="section-header">Інформація:</h2>
+                    <div class="info-content">
+                        <p class="info-item"><strong>Назва місця, вулиці</strong></p>
+                        <p class="info-item"><strong>LOI:</strong> 0</p>
+                        <p class="info-item"><strong>Категорії:</strong> -</p>
+                        <p class="info-item"><strong>Перевірено:</strong> Ні</p>
+                    </div>
+                </div>
+
+                <div class="reviews-section">
+                    <h2 class="section-header reviews-header">Відгуки:</h2>
+                    <div id="reviews" class="reviews-container">
+                        <div class="review-placeholder"></div>
+                        <div class="review-placeholder"></div>
+                        <div class="review-placeholder"></div>
+                        <div class="review-placeholder"></div>
+                    </div>
+                </div>
+                
+                <div class="location-indicator">
+                    <i class="bi bi-geo-alt-fill location-icon"></i>
+                    <span class="location-name">Львів</span>
+                </div>
+            </aside>
+
+            <!-- Map Area -->
+            <main class="main-content">
+                <div id="map"></div>
+                <div class="map-controls">
+                    <button class="zoom-button zoom-in">+</button>
+                    <button class="zoom-button zoom-out">−</button>
+                </div>
+                <div class="map-attribution">
+                    <img src="https://www.google.com/images/branding/googlelogo/1x/googlelogo_white_60x24dp.png" alt="Google" class="google-logo">
+                </div>
+            </main>
+        </div>
     </div>
 
     @section Scripts {
         <script>
-            document.getElementById('menuToggle').onclick = () => {
-                document.getElementById('sidebar').classList.toggle('collapsed');
-            };
-
             let map, userToken = localStorage.getItem('token');
 
             async function initMap() {
-                const center = { lat: 50.4501, lng: 30.5234 };
-                map = new google.maps.Map(document.getElementById("map"), { zoom: 12, center });
+                const styleUrl = '/styles/map-style.json';
+                const style = await fetch(styleUrl).then(res => res.json());
+                
+                const center = { lat: 49.8397, lng: 24.0297 };
+                map = new google.maps.Map(document.getElementById("map"), {
+                    zoom: 12,
+                    center,
+                    styles: style,
+                    disableDefaultUI: true,
+                    zoomControl: false,
+                    mapTypeControl: false,
+                    streetViewControl: false,
+                    fullscreenControl: false
+                });
+                
+                // Custom zoom controls
+                document.querySelector('.zoom-in').addEventListener('click', () => {
+                    map.setZoom(map.getZoom() + 1);
+                });
+                
+                document.querySelector('.zoom-out').addEventListener('click', () => {
+                    map.setZoom(map.getZoom() - 1);
+                });
+                
+                // Load points and add markers
                 const points = await (await fetch('/api/point')).json();
                 points.forEach(addMarker);
+                
+                // Add sample markers shown in the image
+                addCustomMarker({ lat: 49.842, lng: 24.031 }, 'red'); // Opera marker
+                addCustomMarker({ lat: 49.845, lng: 24.025 }, 'blue'); // Random blue marker
+                addCustomMarker({ lat: 49.865, lng: 24.035 }, 'blue'); // SPARTAK
+                addCustomMarker({ lat: 49.855, lng: 24.072 }, 'blue'); // Epicenter
+                addCustomMarker({ lat: 49.835, lng: 24.015 }, 'blue'); // Skrynya
+                addCustomMarker({ lat: 49.820, lng: 24.028 }, 'blue'); // Another blue marker
+                addCustomMarker({ lat: 49.815, lng: 24.060 }, 'blue'); // Another blue marker
+                addCustomMarker({ lat: 49.825, lng: 24.080 }, 'blue'); // Another blue marker
+                addCustomMarker({ lat: 49.805, lng: 24.070 }, 'blue'); // Another blue marker
+                addCustomMarker({ lat: 49.800, lng: 24.090 }, 'green'); // Arena Lviv
+                
                 setupSearch();
+            }
+
+            function addCustomMarker(position, type) {
+                const iconUrl = type === 'red' ? 
+                    'http://maps.google.com/mapfiles/ms/icons/red-dot.png' : 
+                    type === 'blue' ? 
+                        'http://maps.google.com/mapfiles/ms/icons/blue-dot.png' : 
+                        'http://maps.google.com/mapfiles/ms/icons/green-dot.png';
+                
+                const marker = new google.maps.Marker({
+                    position: position,
+                    map: map,
+                    icon: {
+                        url: iconUrl,
+                        scaledSize: new google.maps.Size(32, 32)
+                    }
+                });
+                
+                marker.addListener('click', () => {
+                    showPointInfo({
+                        address: 'Адреса обраної точки',
+                        description: 'Опис обраної точки',
+                        loi: type === 'red' ? 3 : type === 'blue' ? 7 : 9,
+                        categories: ['Категорія 1', 'Категорія 2'],
+                        verified: true,
+                        id: 'custom-' + Math.random().toString(36).substr(2, 9)
+                    });
+                });
             }
 
             function getColor(loi) {
                 if (loi <= 3) return "http://maps.google.com/mapfiles/ms/icons/red-dot.png";
-                if (loi <= 7) return "http://maps.google.com/mapfiles/ms/icons/yellow-dot.png";
+                if (loi <= 7) return "http://maps.google.com/mapfiles/ms/icons/blue-dot.png";
                 return "http://maps.google.com/mapfiles/ms/icons/green-dot.png";
             }
 
             function addMarker(p) {
                 const m = new google.maps.Marker({
                     position: { lat: p.latitude, lng: p.longitude },
-                    map, icon: getColor(p.loi)
+                    map, 
+                    icon: {
+                        url: getColor(p.loi),
+                        scaledSize: new google.maps.Size(32, 32)
+                    }
                 });
                 m.addListener('click', () => showPointInfo(p));
             }
 
             async function showPointInfo(p) {
-                document.getElementById('pointData').innerHTML = `
-                    <h4>${p.address}</h4>
-                    <p>${p.description}</p>
-                    <p><b>LOI:</b> ${p.loi}</p>
-                    <p><b>Категорії:</b> ${(p.categories ?? []).join(', ') || '-'}</p>
-                    <p><b>Перевірено:</b> ${p.verified ? 'Так' : 'Ні'}</p>
-                    ${userToken ? `<button onclick="savePoint('${p.id}')">Зберегти точку</button>` : ''}
+                document.querySelector('.info-content').innerHTML = `
+                    <p class="info-item"><strong>${p.address || 'Назва місця, вулиці'}</strong></p>
+                    <p class="info-item"><strong>LOI:</strong> ${p.loi}</p>
+                    <p class="info-item"><strong>Категорії:</strong> ${(p.categories ?? []).join(', ') || '-'}</p>
+                    <p class="info-item"><strong>Перевірено:</strong> ${p.verified ? 'Так' : 'Ні'}</p>
+                    ${userToken ? `<button class="save-point-btn" onclick="savePoint('${p.id}')">Зберегти точку</button>` : ''}
                     ${userToken ? `
-                        <div>
+                        <div class="review-form">
                           <textarea id="rev" placeholder="Відгук"></textarea>
                           <input id="rate" type="number" min="0" max="5" placeholder="Оцінка (0-5)" />
                           <button onclick="addReview('${p.id}')">Додати відгук</button>
@@ -119,14 +201,34 @@
             }
 
             async function loadReviews(pointId) {
-                const res = await fetch('/api/review/byPoint/' + pointId);
-                const rev = await res.json();
-                const rblock = document.getElementById('reviews');
-                rblock.innerHTML = "<h4>Відгуки:</h4>";
-                if (rev.length == 0) rblock.innerHTML += "<p>Немає</p>";
-                rev.forEach(r => {
-                    rblock.innerHTML += `<div class="review"><b>Оцінка:</b> ${r.rating}<br/>${r.reviewText}</div>`;
-                });
+                try {
+                    const res = await fetch('/api/review/byPoint/' + pointId);
+                    const rev = await res.json();
+                    const rblock = document.getElementById('reviews');
+                    rblock.innerHTML = "";
+                    
+                    if (rev.length == 0) {
+                        // Add empty placeholders
+                        for (let i = 0; i < 4; i++) {
+                            rblock.innerHTML += `<div class="review-placeholder"></div>`;
+                        }
+                    } else {
+                        rev.forEach(r => {
+                            rblock.innerHTML += `
+                                <div class="review-item">
+                                    <div class="review-rating">Оцінка: ${r.rating}</div>
+                                    <div class="review-text">${r.reviewText}</div>
+                                </div>`;
+                        });
+                    }
+                } catch (error) {
+                    // If there's an error, show placeholders
+                    const rblock = document.getElementById('reviews');
+                    rblock.innerHTML = "";
+                    for (let i = 0; i < 4; i++) {
+                        rblock.innerHTML += `<div class="review-placeholder"></div>`;
+                    }
+                }
             }
 
             async function addReview(pointId) {
@@ -154,11 +256,6 @@
                 }
             }
 
-
-
-
-
-
             async function savePoint(id) {
                 const res = await fetch('/api/user/savePoint/' + id, {
                     method: 'POST',
@@ -166,7 +263,6 @@
                 });
                 if (res.ok) alert('Збережено'); else alert('Помилка');
             }
-
 
             function setupSearch() {
                 const geocoder = new google.maps.Geocoder();

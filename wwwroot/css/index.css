@@ -1,0 +1,319 @@
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body, html {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #e0e0e0;
+    background-color: #1a1a1a;
+}
+
+.app-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+/* Top Navigation Bar */
+.top-navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #1a1a1a;
+    padding: 8px 16px;
+    border-bottom: 1px solid #333;
+    height: 50px;
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+}
+
+.logo-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 8px);
+    grid-template-rows: repeat(3, 8px);
+    grid-gap: 2px;
+    margin-right: 10px;
+}
+
+.logo-grid div {
+    width: 8px;
+    height: 8px;
+    background-color: #4caf50;
+    border-radius: 2px;
+}
+
+.brand-name {
+    font-size: 22px;
+    font-weight: bold;
+    color: #ffffff;
+    letter-spacing: 1px;
+}
+
+.search-container {
+    flex: 1;
+    max-width: 500px;
+    margin: 0 20px;
+}
+
+.search-box {
+    position: relative;
+    width: 100%;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    border: 1px solid #444;
+    border-radius: 4px;
+    background-color: #222;
+    padding: 0 10px;
+}
+
+.search-icon {
+    margin-right: 8px;
+    color: #4caf50;
+}
+
+#searchInput {
+    flex: 1;
+    height: 100%;
+    background: transparent;
+    border: none;
+    color: #e0e0e0;
+    font-size: 14px;
+    outline: none;
+}
+
+#searchInput::placeholder {
+    color: #888;
+}
+
+.nav-actions {
+    display: flex;
+    align-items: center;
+}
+
+.nav-actions i {
+    color: #4caf50;
+    font-size: 24px;
+    margin-right: 20px;
+}
+
+.nav-link {
+    color: #e0e0e0;
+    text-decoration: none;
+    margin-left: 20px;
+    font-size: 16px;
+}
+
+/* Content layout */
+.content-wrapper {
+    display: flex;
+    height: calc(100vh - 50px);
+}
+
+/* Sidebar */
+.sidebar {
+    width: 320px;
+    background-color: rgba(26, 26, 26, 0.9);
+    padding: 20px;
+    overflow-y: auto;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.section-header {
+    color: #4caf50;
+    font-size: 18px;
+    margin-bottom: 10px;
+    font-weight: normal;
+}
+
+.reviews-header {
+    color: #4caf50;
+    margin-top: 10px;
+}
+
+.info-section, .reviews-section {
+    margin-bottom: 20px;
+}
+
+.info-content {
+    margin-bottom: 10px;
+}
+
+.info-item {
+    margin: 8px 0;
+    line-height: 1.4;
+}
+
+.reviews-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.review-placeholder {
+    height: 50px;
+    background-color: #252525;
+    border-radius: 4px;
+}
+
+.review-item {
+    background-color: #252525;
+    border-radius: 4px;
+    padding: 10px;
+    margin-bottom: 8px;
+}
+
+.review-rating {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.location-indicator {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    padding: 10px 0;
+}
+
+.location-icon {
+    color: #4caf50;
+    font-size: 24px;
+    margin-right: 10px;
+}
+
+.location-name {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+/* Main Content */
+.main-content {
+    flex: 1;
+    position: relative;
+    height: 100%;
+}
+
+#map {
+    height: 100%;
+    width: 100%;
+}
+
+/* Map controls */
+.map-controls {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.zoom-button {
+    width: 40px;
+    height: 40px;
+    background-color: white;
+    border: none;
+    color: #333;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.zoom-button:hover {
+    background-color: #f5f5f5;
+}
+
+.map-attribution {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    padding: 4px 8px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    font-size: 11px;
+}
+
+.google-logo {
+    height: 16px;
+    margin-right: 8px;
+}
+
+/* Buttons and forms */
+button {
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-top: 10px;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
+.save-point-btn {
+    width: 100%;
+    margin-top: 15px;
+}
+
+.review-form {
+    margin-top: 15px;
+}
+
+.review-form textarea {
+    width: 100%;
+    height: 80px;
+    background-color: #252525;
+    border: 1px solid #444;
+    border-radius: 4px;
+    color: #e0e0e0;
+    padding: 8px;
+    resize: none;
+    margin-bottom: 10px;
+}
+
+.review-form input {
+    width: 100%;
+    height: 36px;
+    background-color: #252525;
+    border: 1px solid #444;
+    border-radius: 4px;
+    color: #e0e0e0;
+    padding: 0 8px;
+    margin-bottom: 10px;
+}
+
+/* Responsiveness */
+@media (max-width: 768px) {
+    .content-wrapper {
+        flex-direction: column;
+    }
+    
+    .sidebar {
+        width: 100%;
+        height: auto;
+        max-height: 200px;
+    }
+}
