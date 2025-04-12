@@ -68,6 +68,14 @@
                     </div>
                 </div>
                 
+                <div class="route-instructions" style="padding: 15px; background: #f4f4f4; border-radius: 10px; margin: 10px;">
+                    <h3>Маршрут:</h3>
+                    <div id="routeSteps">
+                        <p>Щоб побудувати маршрут — натисніть на кнопку "Прокласти маршрут"</p>
+                    </div>
+                </div>
+
+
                 <div class="location-indicator">
                     <i class="bi bi-geo-alt-fill location-icon"></i>
                     <span class="location-name">Львів</span>
@@ -78,6 +86,12 @@
             <main class="main-content">
                 <div id="map"></div>
                 <div class="map-controls">
+                    <select id="routeType" class="route-select">
+                        <option value="walking">Пішки</option>
+                        <option value="inclusive">Інклюзивний транспорт</option>
+                        <option value="any">Будь-який транспорт</option>
+                    </select>
+
                     <button class="zoom-button zoom-in">+</button>
                     <button class="zoom-button zoom-out">−</button>
                 </div>
@@ -91,11 +105,109 @@
     @section Scripts {
         <script>
             let map, userToken = localStorage.getItem('token');
+            let directionsService, directionsRenderer, currentPosition;
+
+
+            async function getUserLocation() {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        (pos) => {
+                            currentPosition = {
+                                lat: pos.coords.latitude,
+                                lng: pos.coords.longitude
+                            };
+                        },
+                        () => { alert("Не вдалося отримати вашу геолокацію"); }
+                    );
+                }
+            }
+
+
+            async function buildRoute(destination) {
+                if (!currentPosition) {
+                    alert("Не вдалося отримати вашу геолокацію");
+                    return;
+                }
+
+                const routeType = document.getElementById("routeType").value;
+                let travelMode = google.maps.TravelMode.WALKING;
+
+                if (routeType === "any") {
+                    travelMode = google.maps.TravelMode.TRANSIT;
+                }
+
+                if (routeType === "inclusive") {
+                    travelMode = google.maps.TravelMode.TRANSIT;
+                }
+
+                const request = {
+                    origin: currentPosition,
+                    destination: destination,
+                    travelMode: travelMode
+                };
+
+                directionsService.route(request, (result, status) => {
+                    if (status === 'OK') {
+
+                        if (routeType === 'inclusive') {
+                            const allSteps = result.routes[0].legs.flatMap(leg => leg.steps);
+                            const isInclusive = allSteps.every(step => {
+                                return !step.transit || (step.transit && whitelistTransport(step.transit.line.short_name));
+                            });
+
+                            if (!isInclusive) {
+                                alert('Немає повністю інклюзивного маршруту цим транспортом');
+                                return;
+                            }
+                        }
+
+                        directionsRenderer.setDirections(result);
+
+                        // Вивід у sidebar
+                        let stepsBlock = document.getElementById('routeSteps');
+                        stepsBlock.innerHTML = "";
+
+                        result.routes[0].legs.forEach((leg) => {
+                            leg.steps.forEach((step) => {
+                                if (step.transit) {
+                                    stepsBlock.innerHTML += `
+                                        <p>🚏 Сісти на транспорт: №${step.transit.line.short_name}</p>
+                                        <p>Зупинка: ${step.transit.departure_stop.name}</p>
+                                        <p>Їхати до зупинки: ${step.transit.arrival_stop.name}</p>
+                                        <p>Тип транспорту: ${step.transit.line.vehicle.type}</p>
+                                        <hr>
+                                    `;
+                                } else {
+                                    stepsBlock.innerHTML += `
+                                        <p>🚶‍♂️ Йти: ${step.instructions.replace(/<[^>]*>?/gm, '')} (${step.distance.text})</p>
+                                        <hr>
+                                    `;
+                                }
+                            });
+                        });
+
+                    } else {
+                        alert("Не вдалося побудувати маршрут");
+                    }
+                });
+            }
+
+
+
+            function whitelistTransport(routeNumber) {
+                const inclusiveRoutes = ["1А","3А","5А","6А","8А","9","10","16","18","22","23","24",
+                "25","27","30","31","32","33","38","29","40","46","47A","48","49A","52","53","61","84","92",
+                ]; // Твій whitelist
+                return inclusiveRoutes.includes(routeNumber);
+            }
+
+
 
             async function initMap() {
                 const styleUrl = '/styles/map-style.json';
                 const style = await fetch(styleUrl).then(res => res.json());
-                
+                getUserLocation();
+
                 const center = { lat: 49.8397, lng: 24.0297 };
                 map = new google.maps.Map(document.getElementById("map"), {
                     zoom: 12,
@@ -107,6 +219,9 @@
                     streetViewControl: false,
                     fullscreenControl: false
                 });
+
+                directionsService = new google.maps.DirectionsService();
+                directionsRenderer = new google.maps.DirectionsRenderer({ map: map });
                 
                 // Custom zoom controls
                 document.querySelector('.zoom-in').addEventListener('click', () => {
@@ -151,7 +266,7 @@
                         scaledSize: new google.maps.Size(32, 32)
                     }
                 });
-                
+
                 marker.addListener('click', () => {
                     showPointInfo({
                         address: 'Адреса обраної точки',
@@ -159,9 +274,11 @@
                         loi: type === 'red' ? 3 : type === 'blue' ? 7 : 9,
                         categories: ['Категорія 1', 'Категорія 2'],
                         verified: true,
-                        id: 'custom-' + Math.random().toString(36).substr(2, 9)
+                        id: 'custom-' + Math.random().toString(36).substr(2, 9),
+                        position: position
                     });
                 });
+
             }
 
             function getColor(loi) {
@@ -188,17 +305,30 @@
                     <p class="info-item"><strong>LOI:</strong> ${p.loi}</p>
                     <p class="info-item"><strong>Категорії:</strong> ${(p.categories ?? []).join(', ') || '-'}</p>
                     <p class="info-item"><strong>Перевірено:</strong> ${p.verified ? 'Так' : 'Ні'}</p>
+
+                    ${currentPosition && p.position ? `<button class="route-btn" onclick="buildRoute(${JSON.stringify(p.position)})">Прокласти маршрут</button>` : ''}
+
+                    ${currentPosition && p.latitude && p.longitude ? `<button class="route-btn" onclick="buildRoute({lat: ${p.latitude}, lng: ${p.longitude}})">Прокласти маршрут</button>` : ''}
+
                     ${userToken ? `<button class="save-point-btn" onclick="savePoint('${p.id}')">Зберегти точку</button>` : ''}
+
                     ${userToken ? `
                         <div class="review-form">
                           <textarea id="rev" placeholder="Відгук"></textarea>
                           <input id="rate" type="number" min="0" max="5" placeholder="Оцінка (0-5)" />
                           <button onclick="addReview('${p.id}')">Додати відгук</button>
-                        </div>`: ''
+                        </div>` : ''
                     }
+                    <div class="route-instructions">
+                        <h3>Маршрут:</h3>
+                        <div id="routeSteps"></div>
+                    </div>
+
                 `;
+
                 loadReviews(p.id);
             }
+
 
             async function loadReviews(pointId) {
                 try {

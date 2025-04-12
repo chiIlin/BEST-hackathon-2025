@@ -317,3 +317,20 @@ button:hover {
         max-height: 200px;
     }
 }
+
+.route-instructions {
+    margin-top: 20px;
+    padding: 10px;
+    background-color: #f4f4f4;
+    border-radius: 10px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+    .route-instructions h3 {
+        margin-bottom: 10px;
+    }
+
+    .route-instructions p {
+        margin: 5px 0;
+    }
