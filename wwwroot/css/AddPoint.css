@@ -19,32 +19,34 @@ input, textarea {
 .inclusive-item {
     display: flex;
     align-items: center; /* Вирівнює текст і чекбокси по вертикалі */
-    gap: 12px; /* Відступ між чекбоксом і текстом */
-    padding: 8px 12px;
-    background: #44445a;
-    border-radius: 6px;
+    gap: 8px; /* Відступ між чекбоксом і текстом */
+    padding: 6px;
+    background: none; /* Прибрано фон */
+    border-radius: 4px;
     transition: background 0.2s ease;
+    margin-left: 0; /* Вирівнює елементи по лівому краю */
 }
 
 .inclusive-item:hover {
-    background: #555566;
+    background: #3a3a4f;
 }
 
 .inclusive-item input[type="checkbox"] {
     flex-shrink: 0; /* Забезпечує, що чекбокс не змінює розмір */
-    width: 20px; /* Фіксована ширина для чекбокса */
-    height: 20px; /* Фіксована висота для чекбокса */
+    width: 18px; /* Фіксована ширина для чекбокса */
+    height: 18px; /* Фіксована висота для чекбокса */
     margin: 0; /* Забезпечує правильне вирівнювання */
     accent-color: #4caf50; /* Колір чекбокса */
 }
 
 .inclusive-text {
-    font-size: 16px;
+    font-size: 14px;
     color: #fff;
-    line-height: 1.2; /* Вирівнює текст по висоті */
     margin: 0; /* Забирає зайві відступи */
+    line-height: 1.2;
+    display: inline-block; /* Забезпечує правильне вирівнювання */
     position: relative;
-    top: -4px; /* Піднімає текст трохи вище */
+    top: -2px; /* Піднімає текст на 2 пікселі */
 }
 
 .map-container {
@@ -76,7 +78,7 @@ input, textarea {
     box-sizing: border-box; /* Враховує padding і border у ширині */
     margin-bottom: 15px;
     padding: 10px;
-    border: none;
+    border: 1px solid #555; /* Зменшено обводку */
     border-radius: 4px;
     background: #3a3a4f;
     color: #fff;
@@ -86,6 +88,12 @@ input::placeholder, textarea::placeholder {
     white-space: nowrap; /* Забороняє перенос тексту */
     overflow: hidden; /* Ховає текст, що виходить за межі */
     text-overflow: ellipsis; /* Додає три крапки, якщо текст не вміщується */
+}
+
+.form-container input::placeholder, .form-container textarea::placeholder {
+    color: #aaa;
+    font-size: 14px;
+    line-height: 1.2;
 }
 
 .btn {
@@ -107,13 +115,14 @@ input::placeholder, textarea::placeholder {
 }
 
 #inclusiveList {
-    display: grid;
+    display: none; /* Список прихований за замовчуванням */
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Сітка для рівного розташування */
-    gap: 20px; /* Відступи між елементами */
-    margin-top: 20px;
+    gap: 10px; /* Відступи між елементами */
+    margin-top: 10px;
     padding: 10px;
     background: #353548;
     border-radius: 8px;
+    margin-left: 0; /* Вирівнює список по лівому краю */
 }
 
 .inclusive-container label {
@@ -131,19 +140,30 @@ input::placeholder, textarea::placeholder {
     margin-top: 20px;
     padding: 10px;
     background: #2a2a3b;
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    border-radius: 6px; /* Зменшено закруглення */
+    box-shadow: none; /* Прибрано велику обводку */
     max-width: 800px; /* Встановлює максимальну ширину контейнера */
+    padding-left: 0; /* Вирівнює контейнер з іншими елементами */
 }
 
 .inclusivity-container label {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: bold;
     color: #fff;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     display: block;
+    margin-left: 0; /* Вирівнює текст по лівому краю */
 }
 
 .inclusivity-container .btn {
     margin-top: 10px;
+    background: #4caf50;
+    color: #fff;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.3s ease;
+    margin-left: 0; /* Вирівнює кнопку по лівому краю */
 }

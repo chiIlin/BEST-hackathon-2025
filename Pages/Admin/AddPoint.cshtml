@@ -92,7 +92,7 @@
             <label>Інклюзивності</label>
             <button type="button" onclick="toggleInclusives()" class="btn">Оберіть інклюзивності</button>
 
-            <div id="inclusiveList" style="display: block;">
+            <div id="inclusiveList">
                 @foreach (var inclusive in new List<string>{
                     "Пандус", "Ліфт", "Тактильна плитка", "Звукові сигнали",
                     "Дублювання тексту шрифтом Брайля", "Вказівники для слабозорих", "Інклюзивна вбиральня",
@@ -152,7 +152,8 @@
 
         function toggleInclusives() {
             const list = document.getElementById('inclusiveList');
-            list.style.display = list.style.display === 'none' ? 'block' : 'none';
+            const currentDisplay = window.getComputedStyle(list).display;
+            list.style.display = currentDisplay === 'none' ? 'block' : 'none';
         }
 
         document.getElementById('savePoint').onclick = async () => {
@@ -209,5 +210,12 @@
                 document.getElementById('msg').innerText = `Помилка ${res.status}: ${errorText}`;
             }
         };
+    </script>
+    <script>
+        function toggleInclusives() {
+            const list = document.getElementById('inclusiveList');
+            const currentDisplay = window.getComputedStyle(list).display;
+            list.style.display = currentDisplay === 'none' ? 'block' : 'none';
+        }
     </script>
 }
