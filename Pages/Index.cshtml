@@ -1,4 +1,4 @@
-﻿@page
+@page
 @model best_hackathon_2025.Pages.IndexModel
 @using Microsoft.Extensions.Configuration
 @inject IConfiguration Configuration
@@ -45,8 +45,8 @@
             </div>
 
             <div class="filter-container">
-                <div class="filter-dropdown">
-                    <i class="bi bi-sliders filter-icon" onclick="toggleFilterMenu()"></i>
+                <div class="filter-dropdown" onclick="toggleFilterMenu()">
+                    <i class="bi bi-sliders filter-icon"></i>
                     <span id="selectedFilter" class="selected-filter">Усі поінти</span>
                     <div class="filter-menu" id="filterMenu">
                         <div class="filter-item" onclick="applyFilter('all')">Усі поінти</div>
@@ -132,7 +132,7 @@
                         <div class="route-option" id="route-option-0">
                             <div class="route-info">
                                 <span class="route-number">Маршрут 1: 22 хв.</span>
-                                <span class="route-details">Вулиця - Вулиця - Вулиця.</span>
+                                <span class="route-details"></span>
                                 <span class="route-inclusive">[Інклюзивний]</span>
                             </div>
                         </div>
@@ -140,7 +140,7 @@
                         <div class="route-option" id="route-option-1">
                             <div class="route-info">
                                 <span class="route-number">Маршрут 2: 18 хв.</span>
-                                <span class="route-details">Вулиця - Вулиця - Вулиця.</span>
+                                <span class="route-details"></span>
                                 <span class="route-partially">[Частково інклюзивний]</span>
                             </div>
                         </div>
@@ -148,7 +148,7 @@
                         <div class="route-option" id="route-option-2">
                             <div class="route-info">
                                 <span class="route-number">Маршрут 3: 16 хв.</span>
-                                <span class="route-details">Вулиця - Вулиця - Вулиця.</span>
+                                <span class="route-details"></span>
                                 <span class="route-non-inclusive">[Не інклюзивний]</span>
                             </div>
                         </div>
@@ -179,6 +179,8 @@
             let map, userToken = localStorage.getItem('token');
             let directionsService, directionsRenderer, currentPosition;
             let markers = [];
+            let suggestionIndex = -1;
+            let currentSuggestions = [];
 
             async function getUserLocation() {
                 if (navigator.geolocation) {
@@ -353,7 +355,7 @@
                             <div class="route-option" id="route-option-${index}" style="border-left: 5px solid ${color}">
                                 <div class="route-info">
                                     <span class="route-number">Маршрут ${index + 1}: ${leg.duration.text}</span>
-                                    <span class="route-details">Вулиця - Вулиця - Вулиця</span>
+                                    <span class="route-details"></span>
                                     <span class="${inclusivityClass}">${inclusivityType}</span>
                                 </div>
                                 <button onclick="selectRoute(${index})" class="select-route-btn">Обрати</button>
@@ -385,7 +387,7 @@
 
                 const polyline = new google.maps.Polyline({
                     path: route.overview_path,
-                    strokeColor: '#000000', // чорний для вибраного
+                    strokeColor: '#14d378', 
                     strokeOpacity: 1,
                     strokeWeight: 6,
                     map: map
@@ -546,6 +548,7 @@
                         if (point) {
                             setPointA({lat: point.latitude, lng: point.longitude});
                             if (pointB) buildRoute(pointA, pointB);
+                            document.getElementById('searchInput').value = ''; // Очищаємо поле
                         }
                     }
                 });
@@ -559,6 +562,7 @@
                         if (point) {
                             setPointB({lat: point.latitude, lng: point.longitude});
                             if (pointA) buildRoute(pointA, pointB);
+                            document.getElementById('searchInput').value = ''; // Очищаємо поле
                         }
                     }
                 });
@@ -700,6 +704,28 @@
                 const addReviewSection = document.querySelector('.add-review');
                 const displayLoi = p.manualLOI !== null && p.manualLOI !== undefined ? p.manualLOI : p.loi;
 
+                let savedButtonText = 'Зберегти точку';
+                let savedButtonAction = `savePoint('${p.id}')`;
+
+                if (userToken) {
+                    // Перевіряємо, чи точка вже збережена
+                    try {
+                        const checkRes = await fetch(`/api/user/isPointSaved/${p.id}`, {
+                            headers: { Authorization: 'Bearer ' + userToken }
+                        });
+                        
+                        if (checkRes.ok) {
+                            const isSaved = await checkRes.json();
+                            if (isSaved) {
+                                savedButtonText = 'Точка збережена - Відмінити';
+                                savedButtonAction = `alert('Функція відміни збереження ще не реалізована');`;
+                            }
+                        }
+                    } catch (err) {
+                        console.error("Помилка перевірки збереження точки:", err);
+                    }
+                }
+
                 // Інфа про поінт
                 infoContent.innerHTML = `
                     <p class="info-item"><strong>${p.address || 'Назва місця, вулиці'}</strong></p>
@@ -709,13 +735,13 @@
                     </p>
                     <p class="info-item"><strong>Категорії:</strong> ${(p.categories ?? []).join(', ') || '-'}</p>
                     <p class="info-item"><strong>Перевірено:</strong> ${p.verified ? 'Так' : 'Ні'}</p>
-                    ${userToken ? `<button class="save-point-btn" onclick="savePoint('${p.id}')">Зберегти точку</button>` : ''}
+                    <button class="save-point-btn" onclick="${savedButtonAction}">${savedButtonText}</button>
                 `;
 
                 reviewsSection.style.display = 'block';
                 addReviewSection.style.display = 'block';
 
-                // Завантажуємо відгуки з нормального ендпоінта
+                // Завантажуємо відгуки
                 await loadReviews(p.id);
 
                 document.getElementById('rev').value = '';
@@ -733,10 +759,19 @@
                     return;
                 }
 
+                const reviewText = document.getElementById('rev').value;
+                const rating = +document.getElementById('rate').value;
+                
+                // Перевірка, чи не пустий відгук
+                if (!reviewText || rating === 0) {
+                    alert("Будь ласка, введіть текст відгуку та поставте оцінку.");
+                    return;
+                }
+
                 const body = {
                     pointId: selectedPoint.id,
-                    reviewText: document.getElementById('rev').value,
-                    rating: +document.getElementById('rate').value
+                    reviewText: reviewText,
+                    rating: rating
                 };
 
                 const res = await fetch('/api/review', {
@@ -749,8 +784,18 @@
                 });
 
                 if (res.ok) {
-                    alert('Відгук додано');
-                    loadReviews(selectedPoint.id);
+                    // Очищаємо поле вводу відгуку
+                    document.getElementById('rev').value = '';
+                    
+                    // Скидаємо рейтинг зірок до початкового стану
+                    document.getElementById('rate').value = 0;
+                    document.querySelectorAll('.star-rating').forEach(star => {
+                        star.classList.remove('bi-star-fill');
+                        star.classList.add('bi-star');
+                    });
+                    
+                    // Перезавантажуємо відгуки
+                    await loadReviews(selectedPoint.id);
                 } else {
                     const err = await res.text();
                     alert('Помилка: ' + err);
@@ -815,11 +860,49 @@
 
 
             async function savePoint(id) {
+                if (!userToken) {
+                    // Використовуємо абсолютний URL для перенаправлення
+                    window.location.href = '/Auth/Login';
+                    return;
+                }
+                
+                const button = document.querySelector('.save-point-btn');
+                
                 const res = await fetch('/api/user/savePoint/' + id, {
                     method: 'POST',
                     headers: { Authorization: 'Bearer ' + userToken }
                 });
-                if (res.ok) alert('Збережено'); else alert('Помилка');
+                
+                if (res.ok) {
+                    // Змінюємо текст і функціонал кнопки
+                    button.textContent = 'Точка збережена - Відмінити';
+                    // Зберігаємо ID точки в атрибуті даних
+                    button.setAttribute('data-point-id', id);
+                    // Змінюємо onclick для відміни
+                    button.onclick = function() { 
+                        alert('Функція відміни збереження ще не реалізована');
+                        // Або коли у вас буде API для видалення:
+                        // removeSavedPoint(id); 
+                    };
+                } else {
+                    alert('Помилка збереження');
+                }
+            }
+
+            async function removeSavedPoint(id) {
+                const button = document.querySelector('.save-point-btn');
+                
+                const res = await fetch('/api/user/removeSavedPoint/' + id, {
+                    method: 'DELETE',
+                    headers: { Authorization: 'Bearer ' + userToken }
+                });
+                
+                if (res.ok) {
+                    button.textContent = 'Зберегти точку';
+                    button.onclick = function() { savePoint(id); };
+                } else {
+                    alert('Помилка при відміні збереження');
+                }
             }
 
             function setPointA(position) {
@@ -855,8 +938,10 @@
                 const suggestions = document.getElementById('searchSuggestions');
                 suggestions.style.display = 'none';
                 suggestions.innerHTML = '';
-            }
 
+                // Очищуємо поле пошуку
+                document.getElementById('searchInput').value = '';
+            }
 
             function searchPoints(query) {
                 const suggestions = document.getElementById('searchSuggestions');
@@ -866,27 +951,43 @@
                     return;
                 }
 
-                const found = allPoints.filter(p => p.address.toLowerCase().includes(query.toLowerCase()));
-
-                if (found.length === 0) {
-                    suggestions.style.display = 'none';
-                    suggestions.innerHTML = '';
-                    return;
-                }
+                currentSuggestions = allPoints.filter(p => p.address.toLowerCase().includes(query.toLowerCase()));
 
                 suggestions.innerHTML = '';
-                found.forEach(p => {
+                currentSuggestions.forEach((p, index) => {
                     const item = document.createElement('div');
                     item.className = 'search-suggestion-item';
                     item.textContent = p.address;
                     item.onclick = () => {
-                        focusPoint(p.latitude, p.longitude);
-                        showPointInfo(p);
-                        suggestions.style.display = 'none';
+                        selectSearchPoint(p.latitude, p.longitude, p);
                     };
                     suggestions.appendChild(item);
                 });
                 suggestions.style.display = 'block';
+            }
+
+            document.getElementById('searchInput').addEventListener('keydown', function(e) {
+                const items = document.querySelectorAll('.search-suggestion-item');
+                if (e.key === 'ArrowDown') {
+                    suggestionIndex = Math.min(suggestionIndex + 1, items.length - 1);
+                    highlightSuggestion(suggestionIndex);
+                } else if (e.key === 'ArrowUp') {
+                    suggestionIndex = Math.max(suggestionIndex - 1, 0);
+                    highlightSuggestion(suggestionIndex);
+                } else if (e.key === 'Enter') {
+                    if (suggestionIndex >= 0 && currentSuggestions[suggestionIndex]) {
+                        const p = currentSuggestions[suggestionIndex];
+                        selectSearchPoint(p.latitude, p.longitude, p);
+                    } else {
+                        searchPoints(this.value.trim());
+                        this.value = '';
+                    }
+                }
+            });
+
+            function highlightSuggestion(index) {
+                const items = document.querySelectorAll('.search-suggestion-item');
+                items.forEach((el, i) => el.classList.toggle('active', i === index));
             }
 
             function focusPoint(lat, lng) {
@@ -902,13 +1003,10 @@
                     searchPoints(e.target.value);
                 });
 
-                document.getElementById('searchInput').addEventListener('keydown', e => {
+                document.getElementById('searchInput').addEventListener('keydown', function(e) {
                     if (e.key === 'Enter') {
-                        const query = e.target.value.toLowerCase();
-                        const found = allPoints.find(p => p.address.toLowerCase() === query);
-                        if (found) {
-                            selectSearchPoint(found.latitude, found.longitude, found);
-                        }
+                        searchPoints(this.value.trim());
+                        this.value = ''; // Очищаємо поле
                     }
                 });
 
@@ -1053,6 +1151,8 @@
             menu.style.display = 'none';
         }
     });
+
+    document.getElementById('selectedFilter').addEventListener('click', toggleFilterMenu);
 </script>
         <script async defer src="https://maps.googleapis.com/maps/api/js?key=@Configuration["GoogleMaps:ApiKey"]&callback=initMap"></script>
         <script>
@@ -1088,6 +1188,56 @@ document.addEventListener('DOMContentLoaded', () => {
     reviewsSection.style.display = 'none';
     addReviewSection.style.display = 'none';
 });
+</script>
+        <script>
+document.addEventListener('DOMContentLoaded', () => {
+    const authLinks = document.querySelector('.auth-links');
+    const token = localStorage.getItem('token');
+
+    if (token) {
+        // Якщо токен є, показуємо кнопку "Профіль"
+        authLinks.innerHTML = `
+            <a href="/Auth/Profile" class="profile-btn">
+                <i class="bi bi-person-circle"></i> Профіль
+            </a>
+        `;
+    } else {
+        // Якщо токена немає, залишаємо кнопки "Увійти" і "Реєстрація"
+        authLinks.innerHTML = `
+            <a href="/Auth/Login" class="nav-link">Увійти</a>
+            <a href="/Auth/Register" class="nav-link register-link">Реєстрація</a>
+        `;
+    }
+});
+</script>
+<script> 
+    document.addEventListener('DOMContentLoaded', () => {
+    const authLinks = document.querySelector('.auth-links');
+    const token = localStorage.getItem('token');
+    
+    if (token && isValidToken(token)) {
+        // Якщо токен є і він валідний, показуємо кнопку "Профіль"
+        authLinks.innerHTML = `
+            <a href="/Auth/Profile" class="profile-btn">
+                <i class="bi bi-person-circle"></i> Профіль
+            </a>
+        `;
+    } else {
+        // Якщо токена немає або він невалідний, очищаємо його і показуємо кнопки "Увійти" і "Реєстрація"
+        if (token) localStorage.removeItem('token'); // Видаляємо невалідний токен
+        
+        authLinks.innerHTML = `
+            <a href="/Auth/Login" class="nav-link">Увійти</a>
+            <a href="/Auth/Register" class="nav-link register-link">Реєстрація</a>
+        `;
+    }
+});
+
+// Функція для перевірки валідності токена
+function isValidToken(token) {
+    // Базова перевірка, що токен має правильний формат (JWT зазвичай має 3 секції, розділені крапками)
+    return token && typeof token === 'string' && token.split('.').length === 3;
+}
 </script>
     }
 </body>

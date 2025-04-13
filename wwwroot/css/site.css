@@ -133,3 +133,26 @@ body {
   text-decoration: none;
   color: inherit;
 }
+
+.profile-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #14d378;
+  color: white;
+  padding: 8px 14px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 16px;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+.profile-btn:hover {
+  background: #14d378;
+  transform: scale(1.05);
+}
+
+.profile-btn i {
+  font-size: 20px;
+}
