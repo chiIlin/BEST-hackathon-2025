@@ -1,382 +1,790 @@
-/* Reset and base styles */
-* {
-    margin: 0;
-    padding: 0;
+/* Main Layout and General Styles */
+:root {
+    --primary-color: #28a745;
+    --accent-color: #14D378;
+    --secondary-color: #ffc107;
+    --danger-color: #dc3545;
+    --dark-bg: #222;
+    --dark-surface: #333;
+    --light-text: #eee;
+    --sidebar-width: 260px;
+    --header-height: 60px;
+  }
+  
+  * {
     box-sizing: border-box;
-}
-
-body, html {
-    height: 100%;
     margin: 0;
     padding: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: #e0e0e0;
-    background-color: #1a1a1a;
-}
-
-.app-container {
+  }
+  
+  body {
+    font-family: 'Roboto', Arial, sans-serif;
+    background-color: var(--dark-bg);
+    color: var(--light-text);
+    line-height: 1.5;
+  }
+  
+  /* App Container */
+  .app-container {
     display: flex;
     flex-direction: column;
     height: 100vh;
-}
-
-/* Top Navigation Bar */
-.top-navbar {
+    width: 100%;
+  }
+  
+  /* Navigation Bar */
+  .top-navbar {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background-color: #1a1a1a;
-    padding: 8px 16px;
-    border-bottom: 1px solid #333;
-    height: 50px;
-}
-
-.logo-container {
+    padding: 0 20px;
+    height: var(--header-height);
+    background-color: var(--dark-surface);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 10;
+  }
+  
+  .logo-container {
     display: flex;
     align-items: center;
-}
-
-.logo-grid {
+  }
+  
+  .logo-grid {
     display: grid;
     grid-template-columns: repeat(3, 8px);
     grid-template-rows: repeat(3, 8px);
-    grid-gap: 2px;
-    margin-right: 10px;
-}
-
-.logo-grid div {
+    gap: 2px;
+    margin-right: 8px;
+  }
+  
+  .logo-grid div {
     width: 8px;
     height: 8px;
-    background-color: #4caf50;
+    background-color: var(--accent-color);
     border-radius: 2px;
-}
-
-.brand-name {
-    font-size: 22px;
+  }
+  
+  .brand-name {
     font-weight: bold;
-    color: #ffffff;
-    letter-spacing: 1px;
+    font-size: 24px;
+    color: white;
+  }
+  
+  .brand-name span {
+    color: var(--accent-color);
+  }
+  
+  .logo-link {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    user-select: none; /* Забороняємо виділення тексту */
 }
 
-.search-container {
+.logo-link:hover {
+    cursor: pointer;
+}
+  
+  /* Search Box */
+  .search-container {
     flex: 1;
     max-width: 500px;
     margin: 0 20px;
-}
-
-.search-box {
     position: relative;
+  }
+  
+  .search-box {
+    position: relative;
+    display: flex;
+    align-items: center;
     width: 100%;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    border: 1px solid #444;
-    border-radius: 4px;
-    background-color: #222;
-    padding: 0 10px;
-}
-
-.search-icon {
-    margin-right: 8px;
-    color: #4caf50;
-}
-
-#searchInput {
-    flex: 1;
-    height: 100%;
-    background: transparent;
+    height: 40px; /* Встановлюємо висоту для вирівнювання */
+    border-radius: 20px; /* Закруглені краї */
+    background-color: rgba(255, 255, 255, 0.15); /* Фон поля */
+  }
+  
+  .search-icon {
+    position: absolute;
+    left: 12px; /* Відступ від лівого краю */
+    color: var(--accent-color);
+    font-size: 18px;
+    pointer-events: none; /* Іконка не блокує введення тексту */
+  }
+  
+  #searchInput {
+    flex: 1; /* Займає весь доступний простір */
+    padding: 8px 12px 8px 35px; /* Відступи для тексту, щоб не перекривати іконку */
     border: none;
-    color: #e0e0e0;
+    border-radius: 20px;
+    background-color: transparent; /* Прозорий фон */
+    color: white;
     font-size: 14px;
-    outline: none;
-}
+    outline: none; /* Прибираємо рамку при фокусі */
+  }
+  
+  #searchInput::placeholder {
+    color: #aaa;
+  }
 
-#searchInput::placeholder {
-    color: #888;
-}
+  .search-suggestions {
+    position: absolute;
+    top: 40px;
+    left: 0;
+    width: 100%;
+    background-color: var(--dark-surface);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    z-index: 100;
+    max-height: 200px;
+    overflow-y: auto;
+    display: none;
+  }
 
-.nav-actions {
+  .search-suggestion-item {
+    padding: 10px;
+    color: white;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .search-suggestion-item:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  /* Filter Dropdown */
+  .filter-container {
+    margin-right: 20px;
+    position: relative;
     display: flex;
     align-items: center;
+    min-width: 150px; /* Фіксована ширина для уникнення зміщення */
+    min-width: 150px; /* Фіксована ширина */
+  }
+  
+  #disabilityFilter {
+    padding: 6px 12px;
+    border-radius: 4px;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .filter-icon {
+    font-size: 20px;
+    color: white;
+    cursor: pointer;
+    user-select: none; /* Забороняємо виділення тексту */
 }
 
-.nav-actions i {
-    color: #4caf50;
-    font-size: 24px;
-    margin-right: 20px;
+.filter-menu {
+    display: none;
+    position: absolute;
+    top: 30px;
+    right: 0;
+    background-color: var(--dark-surface);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    z-index: 100;
+    width: 200px;
+    user-select: none; /* Забороняємо виділення тексту в меню */
 }
 
-.nav-link {
-    color: #e0e0e0;
-    text-decoration: none;
-    margin-left: 20px;
-    font-size: 16px;
+.filter-item {
+    padding: 10px;
+    color: white;
+    cursor: pointer;
+    transition: background 0.2s;
+    user-select: none; /* Забороняємо виділення тексту */
 }
 
-/* Content layout */
-.content-wrapper {
+.filter-item:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.selected-filter {
+    margin-left: 5px; /* Зменшений відступ */
+    font-size: 14px;
+    color: #fff; /* Яскравий білий текст */
+    font-weight: bold;
+    position: absolute; /* Фіксуємо позицію */
+    top: 50%; /* Вирівнюємо по вертикалі */
+    transform: translateY(-50%); /* Центруємо текст */
+    left: 35px; /* Відступ від кнопки */
+    white-space: nowrap; /* Запобігаємо переносу тексту */
+    user-select: none; /* Забороняємо виділення тексту */
+}
+  
+  /* Nav Actions */
+  .nav-actions {
     display: flex;
-    height: calc(100vh - 50px);
-}
-
-/* Sidebar */
-.sidebar {
-    width: 320px;
-    background-color: rgba(26, 26, 26, 0.9);
+    align-items: center;
+  }
+  
+  .nav-icon-button {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 18px;
+    margin-right: 15px;
+    cursor: pointer;
+  }
+  
+  .auth-links {
+    display: flex;
+  }
+  
+  .nav-link {
+    color: white;
+    text-decoration: none;
+    padding: 8px 15px;
+    margin-left: 10px;
+    transition: all 0.2s;
+  }
+  
+  .register-link {
+    background-color: var(--accent-color);
+    border-radius: 4px;
+  }
+  
+  /* Content Layout */
+  .content-wrapper {
+    display: flex;
+    height: calc(100vh - var(--header-height));
+    overflow: hidden;
+  }
+  
+  /* Sidebar */
+  .sidebar {
+    width: calc(var(--sidebar-width) * 1.1); /* Збільшуємо ширину на 10% */
+    background-color: var(--dark-surface);
     padding: 20px;
     overflow-y: auto;
-    height: 100%;
     display: flex;
     flex-direction: column;
-}
-
-.section-header {
-    color: #4caf50;
-    font-size: 18px;
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .section-header {
+    font-size: 1.2rem;
+    font-weight: 500;
     margin-bottom: 10px;
-    font-weight: normal;
-}
-
-.reviews-header {
-    color: #4caf50;
-    margin-top: 10px;
-}
-
-.info-section, .reviews-section {
+    color: var(--accent-color);
+  }
+  
+  .info-section, .reviews-section {
     margin-bottom: 20px;
-}
-
-.info-content {
+  }
+  
+  .info-content {
+    background-color: rgba(0, 0, 0, 0.2);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+  }
+  
+  .info-item {
+    margin-bottom: 8px;
+  }
+  
+  .save-point-btn {
+    width: 100%;
+    padding: 10px;
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+  
+  /* Reviews Section */
+  .reviews-container {
+    background-color: rgba(0, 0, 0, 0.2);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    min-height: 100px;
+  }
+  
+  .review-placeholder {
+    text-align: center;
+    color: #888;
+    margin-top: 20px;
+  }
+  
+  .review-text {
+    text-align: center;
+    color: #aaa;
+    margin-top: 10px;
+  }
+  
+  .add-review textarea {
+    width: 100%;
+    padding: 10px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    color: white;
+    resize: vertical;
+    min-height: 80px;
     margin-bottom: 10px;
-}
-
-.info-item {
-    margin: 8px 0;
-    line-height: 1.4;
-}
-
-.reviews-container {
+  }
+  
+  .rating-container {
+    display: flex;
+    margin-bottom: 10px;
+  }
+  
+  .star-rating {
+    color: #aaa;
+    margin-right: 5px;
+    cursor: pointer;
+    font-size: 18px;
+  }
+  
+  .star-rating.bi-star-fill {
+    color: var(--secondary-color);
+  }
+  
+  .star-hover {
+    color: var(--secondary-color);
+  }
+  
+  .add-review-btn {
+    width: 100%;
+    padding: 10px;
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  /* Location Indicator */
+  .location-indicator {
+    display: flex;
+    align-items: center;
+    margin-top: auto;
+    padding-top: 20px;
+  }
+  
+  .location-icon {
+    color: var(--accent-color);
+    margin-right: 8px;
+    font-size: 18px;
+  }
+  
+  .location-name {
+    font-weight: 500;
+  }
+  
+  /* Main Content Area */
+  .main-content {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  /* Route Panel */
+  .route-panel {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 2;
+    background-color: rgba(34, 34, 34, 0.85);
+    border-radius: 8px;
+    padding: 15px;
+    width: calc(100% - 40px);
+    max-width: 500px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  }
+  
+  .route-inputs {
     display: flex;
     flex-direction: column;
     gap: 10px;
-}
-
-.review-placeholder {
-    height: 50px;
-    background-color: #252525;
-    border-radius: 4px;
-}
-
-.review-item {
-    background-color: #252525;
-    border-radius: 4px;
-    padding: 10px;
-    margin-bottom: 8px;
-}
-
-.review-rating {
-    font-weight: bold;
-    margin-bottom: 5px;
-}
-
-.location-indicator {
-    margin-top: auto;
+    margin-bottom: 15px;
+  }
+  
+  .route-point {
     display: flex;
     align-items: center;
-    padding: 10px 0;
-}
-
-.location-icon {
-    color: #4caf50;
-    font-size: 24px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    padding: 5px 10px;
+  }
+  
+  .route-point i {
     margin-right: 10px;
-}
-
-.location-name {
-    font-size: 18px;
-    font-weight: bold;
-}
-
-/* Main Content */
-.main-content {
+    color: var(--accent-color);
+  }
+  
+  .route-point input {
     flex: 1;
-    position: relative;
-    height: 100%;
-}
-
-#map {
-    height: 100%;
-    width: 100%;
-}
-
-/* Map controls */
-.map-controls {
+    background: none;
+    border: none;
+    color: white;
+    padding: 5px 0;
+  }
+  
+  .route-point input::placeholder {
+    color: #aaa;
+  }
+  
+  /* Route Results */
+  .route-results {
+    margin-top: 15px;
+  }
+  
+  .route-results h3 {
+    font-size: 16px;
+    margin-bottom: 10px;
+  }
+  
+  .route-option {
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    background-color: rgba(255, 255, 255, 0.05);
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .route-option:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .route-info {
+    flex: 1;
+  }
+  
+  .route-number {
+    display: block;
+    font-weight: 500;
+  }
+  
+  .route-details {
+    font-size: 14px;
+    color: #bbb;
+  }
+  
+  .route-inclusive {
+    color: var(--primary-color);
+    font-size: 14px;
+  }
+  
+  .route-partially {
+    color: var(--secondary-color);
+    font-size: 14px;
+  }
+  
+  .route-non-inclusive {
+    color: var(--danger-color);
+    font-size: 14px;
+  }
+  
+  .select-route-btn {
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 12px;
+    cursor: pointer;
+  }
+  
+  /* Map Controls */
+  .map-controls {
     position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
+    bottom: 20px;
+    right: 20px;
+    z-index: 2;
     display: flex;
     flex-direction: column;
-    gap: 2px;
-}
-
-.zoom-button {
+    gap: 10px;
+  }
+  
+  .route-select {
+    padding: 8px 12px;
+    border-radius: 4px;
+    background-color: rgba(34, 34, 34, 0.8);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  
+  .zoom-button {
     width: 40px;
     height: 40px;
-    background-color: white;
-    border: none;
-    color: #333;
-    font-size: 24px;
-    font-weight: bold;
+    border-radius: 4px;
+    background-color: rgba(34, 34, 34, 0.8);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    font-size: 20px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-}
-
-.zoom-button:hover {
-    background-color: #f5f5f5;
-}
-
-.map-attribution {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background-color: rgba(0, 0, 0, 0.7);
-    padding: 4px 8px;
+  }
+  
+  /* Map Styles */
+  #map {
+    height: 100%;
+    width: 100%;
+  }
+  
+  /* Route step styles */
+  .route-step {
     display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    font-size: 11px;
-}
-
-.google-logo {
-    height: 16px;
-    margin-right: 8px;
-}
-
-/* Buttons and forms */
-button {
-    background-color: #4caf50;
+    align-items: flex-start;
+    margin-bottom: 10px;
+    padding: 10px;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+  }
+  
+  .step-icon {
+    margin-right: 10px;
+    font-size: 20px;
+  }
+  
+  .step-detail {
+    flex: 1;
+  }
+  
+  .transit-step {
+    border-left: 3px solid var(--primary-color);
+  }
+  
+  .walk-step {
+    border-left: 3px solid var(--secondary-color);
+  }
+  
+  .clear-route-btn {
+    width: 100%;
+    padding: 10px;
+    background-color: #31EB78; /* Темніший червоний при наведенні */
     color: white;
     border: none;
-    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 10px;
+    font-size: 14px;
+    font-weight: bold;
+    transition: background 0.3s;
+}
+
+.clear-route-btn:hover {
+    background-color: var(--danger-color); /* Червоний колір */
+}
+
+.set-point-btn {
+    margin-left: 10px;
+    padding: 5px 10px;
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
     border-radius: 4px;
     cursor: pointer;
     font-size: 14px;
-    margin-top: 10px;
+    transition: background-color 0.3s;
 }
 
-button:hover {
-    background-color: #45a049;
+.set-point-btn:hover {
+    background-color: var(--primary-color);
 }
-
-.save-point-btn {
-    width: 100%;
-    margin-top: 15px;
-}
-
-.review-form {
-    margin-top: 15px;
-}
-
-.review-form textarea {
-    width: 100%;
-    height: 80px;
-    background-color: #252525;
-    border: 1px solid #444;
-    border-radius: 4px;
-    color: #e0e0e0;
-    padding: 8px;
-    resize: none;
+  
+  /* Review Items */
+  .review-item {
+    padding: 10px;
     margin-bottom: 10px;
-}
-
-.review-form input {
-    width: 100%;
-    height: 36px;
-    background-color: #252525;
-    border: 1px solid #444;
+    background-color: rgba(255, 255, 255, 0.05);
     border-radius: 4px;
-    color: #e0e0e0;
-    padding: 0 8px;
-    margin-bottom: 10px;
+  }
+  
+  .review-rating {
+    color: var(--secondary-color);
+    margin-bottom: 5px;
+  }
+  
+  /* Light Theme Styles */
+  body.light-theme {
+    background-color: #f5f5f5;
+    color: #333;
+  }
+  
+  body.light-theme .top-navbar {
+    background-color: white;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  body.light-theme .sidebar {
+    background-color: white;
+    border-right: 1px solid #ddd;
+  }
+  
+  body.light-theme .brand-name {
+    color: #333;
+  }
+  
+  body.light-theme #searchInput {
+    background-color: rgba(0, 0, 0, 0.05);
+    color: #333;
+  }
+  
+  body.light-theme #searchInput::placeholder {
+    color: #777;
+  }
+  
+  body.light-theme #disabilityFilter {
+    background-color: rgba(0, 0, 0, 0.05);
+    color: #333;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+  }
+  
+  body.light-theme .nav-link {
+    color: #333;
+  }
+  
+  body.light-theme .section-header {
+    color: var(--accent-color);
+  }
+  
+  body.light-theme .info-content,
+  body.light-theme .reviews-container {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+  
+  body.light-theme .route-panel {
+    background-color: rgba(255, 255, 255, 0.9);
+  }
+  
+  body.light-theme .route-point {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+  
+  body.light-theme .route-point i {
+    color: var(--accent-color);
+  }
+  
+  body.light-theme .route-point input {
+    color: #333;
+  }
+  
+  body.light-theme .route-option,
+  body.light-theme .route-step,
+  body.light-theme .review-item {
+    background-color: rgba(0, 0, 0, 0.03);
+  }
+  
+  body.light-theme .route-option:hover {
+    background-color: rgba(0, 0, 0, 0.07);
+  }
+  
+  body.light-theme .route-select,
+  body.light-theme .zoom-button {
+    background-color: rgba(255, 255, 255, 0.8);
+    color: #333;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+  }
+  
+  body.light-theme .nav-icon-button {
+    color: #333;
+  }
+  
+  body.light-theme .add-review textarea {
+    background-color: rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    color: #333;
+  }
+
+  body.light-theme .search-box {
+    background-color: rgba(0, 0, 0, 0.05); /* Світлий фон для пошуку */
+    border: none; /* Видаляємо обводку */
+    box-shadow: none; /* Видаляємо тінь */
+  }
+
+  body.light-theme .search-icon {
+    color: var(--accent-color); /* Залишаємо іконку видимою */
+  }
+
+  body.light-theme #searchInput {
+    color: #333; /* Темний текст для світлої теми */
+    background-color: transparent; /* Прозорий фон для текстового поля */
+    border: none; /* Видаляємо внутрішню обводку */
+    box-shadow: none; /* Видаляємо тінь */
+  }
+
+  body.light-theme #searchInput::placeholder {
+    color: #777; /* Світліший текст для плейсхолдера */
+  }
+
+  body.light-theme .filter-icon {
+    color: var(--accent-color); /* Робимо іконку видимою */
 }
 
-/* Responsiveness */
-@media (max-width: 768px) {
+body.light-theme .filter-menu {
+    background-color: #ffffff; /* Білий фон для випадаючого меню */
+    border: 1px solid #ddd; /* Світла рамка */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Легка тінь */
+}
+
+body.light-theme .filter-item {
+    color: #333; /* Темний текст для пунктів меню */
+}
+
+body.light-theme .filter-item:hover {
+    background-color: rgba(0, 0, 0, 0.05); /* Світлий фон при наведенні */
+}
+
+body.light-theme .selected-filter {
+    color: #333; /* Темний текст для світлої теми */
+}
+  
+.reviews-section {
+    display: none; /* Приховуємо секцію відгуків за замовчуванням */
+}
+
+.add-review {
+    display: none; /* Приховуємо форму додавання відгуків за замовчуванням */
+}
+
+  /* Responsive Design */
+  @media (max-width: 768px) {
     .content-wrapper {
-        flex-direction: column;
+      flex-direction: column;
     }
     
     .sidebar {
-        width: 100%;
-        height: auto;
-        max-height: 200px;
+      width: 100%;
+      height: 300px;
+      border-right: none;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
-}
-.theme-toggle {
-    background-color: transparent; /* Повертаємо прозорий фон */
-    border: none;
-    color: white; /* Білий колір для іконки */
-    cursor: pointer;
-    font-size: 1.2rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 8px;
-    margin-right: 12px;
-    transition: all 0.2s ease;
-    position: relative; /* Для правильного позиціонування */
-}
-.theme-toggle:hover, 
-.nav-icon-button:hover {
-    background-color: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-}
-
-
-
-/* Прибираємо всі зайві стилі, які могли спричинити проблему */
-.nav-icon-button {
-    background: transparent;
-    border: none;
-    color: white;
-    cursor: pointer;
-    padding: 8px;
-    margin: 0 5px;
-}
-
-.route-instructions {
-    margin-top: 20px;
-    padding: 10px;
-    background-color: #f4f4f4;
-    border-radius: 10px;
-    max-height: 300px;
-    overflow-y: auto;
-}
-
-    .route-instructions h3 {
-        margin-bottom: 10px;
+    
+    .route-panel {
+      width: calc(100% - 20px);
+      left: 10px;
+      right: 10px;
+      max-width: none;
     }
-
-    .route-instructions p {
-        margin: 5px 0;
+    
+    .top-navbar {
+      flex-wrap: wrap;
+      height: auto;
+      padding: 10px;
     }
-
-.selected-marker {
-    animation: bounce 1s infinite;
-}
-
-@keyframes bounce {
-    0%, 100% {
-        transform: translateY(0);
+    
+    .search-container {
+      order: 3;
+      max-width: 100%;
+      width: 100%;
+      margin: 10px 0 0;
     }
-
-    50% {
-        transform: translateY(-5px);
+    
+    .filter-container {
+      margin-right: 0;
     }
-}
+  }

@@ -1,51 +1,103 @@
 .auth-container {
     max-width: 400px;
-    margin: 50px auto;
-    background: #2a2a3b;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-    color: #fff;
+    margin: 100px auto;
+    background: #191919; /* Темний фон */
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    color: #E5E5E5; /* Світлий текст */
+    text-align: center;
 }
 
 .auth-container h2 {
-    text-align: center;
+    font-size: 32px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #E5E5E5; /* CHILL білий */
+}
+
+.auth-container h2 span {
+    color: #31EB78 !important /* GO зелений */
+}
+
+.auth-container .subtitle {
+    font-size: 18px;
+    color: #31EB78; /* Зелений текст для "Вхід" */
     margin-bottom: 20px;
 }
 
 .auth-form {
     display: flex;
     flex-direction: column;
+    gap: 15px;
 }
 
 .auth-form label {
-    margin-bottom: 5px;
+    text-align: left;
+    font-size: 14px;
     font-weight: bold;
+    color: #E5E5E5; /* Світлий текст */
 }
 
 .auth-form input {
-    margin-bottom: 15px;
-    padding: 10px;
+    padding: 12px;
     border: none;
-    border-radius: 4px;
-    background: #3a3a4f;
-    color: #fff;
+    border-radius: 5px;
+    background: #2D2929; /* Темно-сірий фон */
+    color: #E5E5E5; /* Світлий текст */
+    font-size: 14px;
 }
 
 .auth-form button {
-    padding: 10px;
-    background: #4caf50;
-    color: #fff;
+    padding: 12px;
+    background: #31EB78; /* Зелений фон */
+    color: #191919; /* Темний текст */
     border: none;
-    border-radius: 4px;
+    border-radius: 5px;
+    font-size: 16px;
     cursor: pointer;
+    transition: background 0.3s;
 }
 
 .auth-form button:hover {
-    background: #45a049;
+    background: #28C96A; /* Трохи темніший зелений */
 }
 
 .error-message {
-    color: #ff4d4d;
-    text-align: center;
+    color: #E5E5E5; /* Світлий текст */
+    font-size: 14px;
+    margin-top: 10px;
+}
+
+body {
+    user-select: none; /* Забороняємо виділення тексту */
+}
+
+input, button, textarea {
+    user-select: text; /* Дозволяємо виділення тексту в полях вводу */
+}
+
+.back-to-home {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    text-decoration: none;
+    color: #31EB78; /* Зелений колір, що відповідає стилю сторінки */
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    background: #2D2929; /* Темно-сірий фон */
+    padding: 8px 12px;
+    border-radius: 5px;
+    transition: background 0.3s, color 0.3s;
+}
+
+.back-to-home:hover {
+    background: #31EB78; /* Зелений фон при наведенні */
+    color: #191919; /* Темний текст */
+}
+
+.back-to-home i {
+    margin-right: 5px;
+    font-size: 18px;
 }

@@ -3,12 +3,13 @@
 <link rel="stylesheet" href="/css/Register.css" />
 
 <div class="auth-container">
-    <h2>Реєстрація</h2>
+    <h2>CHILL<span style="color: #4caf50;">GO</span></h2>
+    <p class="subtitle">Реєстрація</p>
     <form method="post" class="auth-form">
         <label for="name">Ім'я</label>
         <input asp-for="Input.Name" id="name" placeholder="Введіть ваше ім'я" />
         
-        <label for="email">Email</label>
+        <label for="email">Електронна пошта</label>
         <input asp-for="Input.Email" id="email" type="email" placeholder="Введіть ваш email" />
         
         <label for="password">Пароль</label>
@@ -21,3 +22,7 @@
         <p class="error-message">@Model.Message</p>
     }
 </div>
+
+<a href="/" class="back-to-home">
+    <i class="bi bi-arrow-left"></i> На головну
+</a>

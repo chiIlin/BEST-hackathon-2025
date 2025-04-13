@@ -2,9 +2,10 @@
 <link rel="stylesheet" href="/css/Login.css" />
 
 <div class="auth-container">
-    <h2>Вхід</h2>
+    <h2>CHILL<span style="color: #4caf50;">GO</span></h2>
+    <p class="subtitle">Вхід</p>
     <form class="auth-form">
-        <label for="email">Email</label>
+        <label for="email">Електронна пошта</label>
         <input id="email" type="email" placeholder="Введіть ваш email" />
         
         <label for="pwd">Пароль</label>
@@ -14,6 +15,10 @@
         <p id="msg" class="error-message"></p>
     </form>
 </div>
+
+<a href="/" class="back-to-home">
+    <i class="bi bi-arrow-left"></i> На головну
+</a>
 
 <script>
     async function login() {
