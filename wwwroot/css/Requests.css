@@ -72,6 +72,9 @@
 
 /* Уніфікований стиль для кнопки "На головну" */
 .back-to-home {
+    position: absolute;
+    top: 10px;
+    left: 10px;
     text-decoration: none;
     color: #31EB78;
     font-size: 16px;

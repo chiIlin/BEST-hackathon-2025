@@ -179,6 +179,9 @@ input::placeholder, textarea::placeholder {
 
 /* Уніфікований стиль для кнопки "На головну" */
 .back-to-home {
+    position: absolute; /* Фіксуємо позицію */
+    top: 10px; /* Відступ від верхнього краю */
+    left: 10px; /* Відступ від лівого краю */
     text-decoration: none;
     color: #31EB78;
     font-size: 16px;
