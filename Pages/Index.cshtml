@@ -179,6 +179,8 @@
             let map, userToken = localStorage.getItem('token');
             let directionsService, directionsRenderer, currentPosition;
             let markers = [];
+            let suggestionIndex = -1;
+            let currentSuggestions = [];
 
             async function getUserLocation() {
                 if (navigator.geolocation) {
@@ -534,6 +536,7 @@
                         if (point) {
                             setPointA({lat: point.latitude, lng: point.longitude});
                             if (pointB) buildRoute(pointA, pointB);
+                            document.getElementById('searchInput').value = ''; // Очищаємо поле
                         }
                     }
                 });
@@ -547,6 +550,7 @@
                         if (point) {
                             setPointB({lat: point.latitude, lng: point.longitude});
                             if (pointA) buildRoute(pointA, pointB);
+                            document.getElementById('searchInput').value = ''; // Очищаємо поле
                         }
                     }
                 });
@@ -843,8 +847,10 @@
                 const suggestions = document.getElementById('searchSuggestions');
                 suggestions.style.display = 'none';
                 suggestions.innerHTML = '';
-            }
 
+                // Очищуємо поле пошуку
+                document.getElementById('searchInput').value = '';
+            }
 
             function searchPoints(query) {
                 const suggestions = document.getElementById('searchSuggestions');
@@ -854,27 +860,43 @@
                     return;
                 }
 
-                const found = allPoints.filter(p => p.address.toLowerCase().includes(query.toLowerCase()));
-
-                if (found.length === 0) {
-                    suggestions.style.display = 'none';
-                    suggestions.innerHTML = '';
-                    return;
-                }
+                currentSuggestions = allPoints.filter(p => p.address.toLowerCase().includes(query.toLowerCase()));
 
                 suggestions.innerHTML = '';
-                found.forEach(p => {
+                currentSuggestions.forEach((p, index) => {
                     const item = document.createElement('div');
                     item.className = 'search-suggestion-item';
                     item.textContent = p.address;
                     item.onclick = () => {
-                        focusPoint(p.latitude, p.longitude);
-                        showPointInfo(p);
-                        suggestions.style.display = 'none';
+                        selectSearchPoint(p.latitude, p.longitude, p);
                     };
                     suggestions.appendChild(item);
                 });
                 suggestions.style.display = 'block';
+            }
+
+            document.getElementById('searchInput').addEventListener('keydown', function(e) {
+                const items = document.querySelectorAll('.search-suggestion-item');
+                if (e.key === 'ArrowDown') {
+                    suggestionIndex = Math.min(suggestionIndex + 1, items.length - 1);
+                    highlightSuggestion(suggestionIndex);
+                } else if (e.key === 'ArrowUp') {
+                    suggestionIndex = Math.max(suggestionIndex - 1, 0);
+                    highlightSuggestion(suggestionIndex);
+                } else if (e.key === 'Enter') {
+                    if (suggestionIndex >= 0 && currentSuggestions[suggestionIndex]) {
+                        const p = currentSuggestions[suggestionIndex];
+                        selectSearchPoint(p.latitude, p.longitude, p);
+                    } else {
+                        searchPoints(this.value.trim());
+                        this.value = '';
+                    }
+                }
+            });
+
+            function highlightSuggestion(index) {
+                const items = document.querySelectorAll('.search-suggestion-item');
+                items.forEach((el, i) => el.classList.toggle('active', i === index));
             }
 
             function focusPoint(lat, lng) {
@@ -890,13 +912,10 @@
                     searchPoints(e.target.value);
                 });
 
-                document.getElementById('searchInput').addEventListener('keydown', e => {
+                document.getElementById('searchInput').addEventListener('keydown', function(e) {
                     if (e.key === 'Enter') {
-                        const query = e.target.value.toLowerCase();
-                        const found = allPoints.find(p => p.address.toLowerCase() === query);
-                        if (found) {
-                            selectSearchPoint(found.latitude, found.longitude, found);
-                        }
+                        searchPoints(this.value.trim());
+                        this.value = ''; // Очищаємо поле
                     }
                 });
 

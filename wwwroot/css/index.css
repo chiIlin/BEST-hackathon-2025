@@ -151,6 +151,11 @@
   .search-suggestion-item:hover {
     background-color: rgba(255, 255, 255, 0.1);
   }
+
+  .search-suggestion-item.active {
+    background-color: rgba(255, 255, 255, 0.2);
+    transition: background-color 0.2s;
+  }
   
   /* Filter Dropdown */
   .filter-container {
