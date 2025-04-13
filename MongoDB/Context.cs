@@ -23,5 +23,6 @@ namespace best_hackathon_2025.MongoDB
         public IMongoCollection<Review> Reviews => _database.GetCollection<Review>("reviews");
         public IMongoCollection<Transport> Transport => _database.GetCollection<Transport>("transport");
         public IMongoCollection<PointRequest> PointRequest => _database.GetCollection<PointRequest>("pointRequests");
+        public IMongoCollection<LoiRequest> LoiRequest => _database.GetCollection<LoiRequest>("loiRequests");
     }
 }

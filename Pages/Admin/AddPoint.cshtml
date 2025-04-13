@@ -42,6 +42,9 @@
             </div>
         </div>
 
+        <label for="photos">Фото (необов'язково, можна декілька)</label>
+        <input type="file" id="photos" multiple accept="image/*">
+
         <button id="savePoint" class="btn">Зберегти</button>
         <p id="msg" class="status-message"></p>
     </div>
@@ -52,10 +55,19 @@
 
     <script>
         let map, marker, latLng;
+        let userRole = '';
         const token = localStorage.getItem('token');
         if (!token) location.href = '/Auth/Login';
 
-        function initMap() {
+        async function getRole() {
+            const res = await fetch('/api/user/me', { headers: { Authorization: 'Bearer ' + token } });
+            const user = await res.json();
+            userRole = user.role;
+        }
+
+        async function initMap() {
+            await getRole();
+
             map = new google.maps.Map(document.getElementById('map'), {
                 center: { lat: 49.8397, lng: 24.0297 },
                 zoom: 12
@@ -76,12 +88,13 @@
         }
 
         document.getElementById('savePoint').onclick = async () => {
-            if (!latLng) { alert('Виберіть точку на мапі'); return; }
+            if (!latLng) return alert('Виберіть точку на мапі');
 
             const address = document.getElementById('addr').value.trim();
             const description = document.getElementById('descr').value.trim();
-            if (!address) { alert('Введіть адресу / назву точки'); return; }
-            if (!description) { alert('Введіть опис точки'); return; }
+
+            if (!address) return alert('Введіть адресу / назву точки');
+            if (!description) return alert('Введіть опис точки');
 
             const categories = Array.from(document.querySelectorAll('.inclusive-checkbox:checked')).map(x => x.value);
 
@@ -94,13 +107,34 @@
                 LOI: 0
             };
 
-            const res = await fetch('/api/pointrequest', {
+            const apiUrl = userRole === 'admin' ? '/api/point' : '/api/pointrequest';
+
+            const res = await fetch(apiUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
                 body: JSON.stringify(body)
             });
 
             if (res.ok) {
+                const point = await res.json();
+
+                const files = document.getElementById('photos').files;
+                if (files.length > 0) {
+                    const formData = new FormData();
+                    for (const f of files) formData.append('photos', f);
+
+                    const uploadRes = await fetch(`/api/point/${point.id}/photos`, {
+                        method: 'POST',
+                        headers: { Authorization: 'Bearer ' + token },
+                        body: formData
+                    });
+
+                    if (!uploadRes.ok) {
+                        document.getElementById('msg').innerText = 'Точку додано, але фото не збережено';
+                        return;
+                    }
+                }
+
                 document.getElementById('msg').innerText = 'Точку додано!';
             } else {
                 const errorText = await res.text();

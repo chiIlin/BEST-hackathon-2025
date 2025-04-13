@@ -17,7 +17,20 @@
             </tr>
         </thead>
         <tbody id="requestsTable">
-            <!-- Дані будуть завантажені через JavaScript -->
+        </tbody>
+    </table>
+
+    <h2>Заявки на зміну доступності (LOI)</h2>
+
+    <table class="requests-table">
+        <thead>
+            <tr>
+                <th>PointId</th>
+                <th>Запропонований LOI</th>
+                <th>Дії</th>
+            </tr>
+        </thead>
+        <tbody id="loiRequestsTable">
         </tbody>
     </table>
 </div>
@@ -41,21 +54,14 @@
             if (!userRes.ok) location.href = '/';
 
             const user = await userRes.json();
-            if (user.role !== 'admin') location.href = '/'; // доступ тільки для адміна
+            if (user.role !== 'admin') location.href = '/';
 
             loadRequests();
+            loadLoiRequests();
         }
 
         async function loadRequests() {
-            const res = await fetch('/api/pointrequest', {
-                headers: { 'Authorization': 'Bearer ' + token }
-            });
-
-            if (!res.ok) {
-                alert('Помилка завантаження заявок');
-                return;
-            }
-
+            const res = await fetch('/api/pointrequest', { headers: { Authorization: 'Bearer ' + token } });
             const requests = await res.json();
             const table = document.getElementById('requestsTable');
             table.innerHTML = '';
@@ -63,15 +69,34 @@
             requests.forEach(r => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${r.proposed.address}</td>
-                    <td>${r.proposed.description}</td>
-                    <td>${r.proposed.loi}</td>
-                    <td>
-                        <button onclick="approve('${r.id}')" class="btn">Схвалити</button>
-                        <button onclick="reject('${r.id}')" class="btn btn-secondary">Відхилити</button>
-                        <button onclick="showOnMap(${r.proposed.latitude}, ${r.proposed.longitude})" class="btn btn-map">Показати на карті</button>
-                    </td>
-                `;
+                <td>${r.pointId}</td>
+                <td>${r.requestedLoi}</td>
+                <td>
+                    <button onclick="approveLoi('${r.id}')" class="btn">Схвалити</button>
+                    <button onclick="rejectLoi('${r.id}')" class="btn btn-secondary">Відхилити</button>
+                </td>
+            `;
+                table.appendChild(row);
+            });
+
+        }
+
+        async function loadLoiRequests() {
+            const res = await fetch('/api/loirequest', { headers: { Authorization: 'Bearer ' + token } });
+            const requests = await res.json();
+            const table = document.getElementById('loiRequestsTable');
+            table.innerHTML = '';
+
+            requests.forEach(r => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                        <td>${r.pointId}</td>
+                        <td>${r.requestedLoi}</td>
+                        <td>
+                            <button onclick="approveLoi('${r.id}')" class="btn">Схвалити</button>
+                            <button onclick="rejectLoi('${r.id}')" class="btn btn-secondary">Відхилити</button>
+                        </td>
+                    `;
                 table.appendChild(row);
             });
         }
@@ -79,42 +104,45 @@
         async function approve(id) {
             const res = await fetch(`/api/pointrequest/${id}/approve`, {
                 method: 'POST',
-                headers: { 'Authorization': 'Bearer ' + token }
+                headers: { Authorization: 'Bearer ' + token }
             });
-
             if (res.ok) {
                 alert('Заявку схвалено');
                 loadRequests();
-            } else {
-                alert('Помилка схвалення заявки');
-            }
+            } else alert('Помилка схвалення');
         }
 
         async function reject(id) {
-            // Перевіряємо, чи id є валідним
-            if (!id || id.trim() === '') {
-                alert('Помилка: Невалідний ідентифікатор заявки');
-                return;
-            }
+            const res = await fetch(`/api/pointrequest/${id}`, {
+                method: 'DELETE',
+                headers: { Authorization: 'Bearer ' + token }
+            });
+            if (res.ok) {
+                alert('Заявку відхилено');
+                loadRequests();
+            } else alert('Помилка відхилення');
+        }
 
-            try {
-                const res = await fetch(`/api/pointrequest/${id}`, {
-                    method: 'DELETE',
-                    headers: { 'Authorization': 'Bearer ' + token }
-                });
+        async function approveLoi(id) {
+            const res = await fetch(`/api/loirequest/${id}/approve`, {
+                method: 'POST',
+                headers: { Authorization: 'Bearer ' + token }
+            });
+            if (res.ok) {
+                alert('LOI оновлено');
+                loadLoiRequests();
+            } else alert('Помилка схвалення LOI');
+        }
 
-                if (res.ok) {
-                    alert('Заявку відхилено');
-                    loadRequests(); // Оновлюємо список заявок
-                } else if (res.status === 404) {
-                    alert('Помилка: Заявку не знайдено. Перевірте, чи заявка існує.');
-                } else {
-                    alert(`Помилка відхилення заявки: ${res.status}`);
-                }
-            } catch (error) {
-                alert('Сталася помилка під час відхилення заявки. Спробуйте ще раз.');
-                console.error('Помилка:', error);
-            }
+        async function rejectLoi(id) {
+            const res = await fetch(`/api/loirequest/${id}`, {
+                method: 'DELETE',
+                headers: { Authorization: 'Bearer ' + token }
+            });
+            if (res.ok) {
+                alert('Заявку відхилено');
+                loadLoiRequests();
+            } else alert('Помилка відхилення');
         }
 
         function showOnMap(lat, lng) {

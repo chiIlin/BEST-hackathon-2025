@@ -103,7 +103,7 @@ namespace best_hackathon_2025.Controllers
 
         [Authorize(Roles = "admin,inclusive")]
         [HttpPut("updateLoi/{id}")]
-        public async Task<IActionResult> UpdateLoi(string id, [FromBody] LoiRequest req)
+        public async Task<IActionResult> UpdateLoi(string id, [FromBody] LoiRequestPoint req)
         {
             var point = await _pointRepository.GetByIdAsync(id);
             if (point == null) return NotFound();
@@ -116,7 +116,7 @@ namespace best_hackathon_2025.Controllers
 
 
 
-        public class LoiRequest
+        public class LoiRequestPoint
         {
             public int Loi { get; set; } // int бо LOI у тебе int
         }

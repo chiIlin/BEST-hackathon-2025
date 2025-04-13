@@ -1,0 +1,91 @@
+﻿@page
+@inject IConfiguration Config
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+<link rel="stylesheet" href="/css/AddPoint.css" />
+
+<div class="admin-container">
+    <h2>Запит на зміну доступності точки</h2>
+
+    <div id="map" class="map-container"></div>
+
+    <div class="form-container">
+        <label for="pointId">ID точки (або виберіть на мапі)</label>
+        <input id="pointId" type="text" placeholder="Введіть ID точки" />
+
+        <label for="newLoi">Новий рівень доступності (0-10)</label>
+        <input id="newLoi" type="number" min="0" max="10" />
+
+        <button id="sendRequest" class="btn">Надіслати запит</button>
+        <p id="msg" class="status-message"></p>
+    </div>
+</div>
+
+@section Scripts {
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=@Config["GoogleMaps:ApiKey"]&callback=initMap"></script>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) location.href = '/Auth/Login';
+
+        let map, marker;
+
+        async function initMap() {
+            map = new google.maps.Map(document.getElementById('map'), {
+                center: { lat: 49.8397, lng: 24.0297 },
+                zoom: 12
+            });
+
+            const res = await fetch('/api/point', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+
+            const points = await res.json();
+            points.forEach(p => {
+                const m = new google.maps.Marker({
+                    position: { lat: p.latitude, lng: p.longitude },
+                    map
+                });
+
+                m.addListener('click', () => {
+                    document.getElementById('pointId').value = p.id;
+                });
+            });
+        }
+
+        window.initMap = initMap;
+
+        document.getElementById('sendRequest').onclick = async () => {
+            const pointId = document.getElementById('pointId').value.trim();
+            const newLoi = +document.getElementById('newLoi').value.trim();
+
+            if (!pointId) {
+                alert('Введіть ID точки або виберіть її на мапі');
+                return;
+            }
+
+            if (isNaN(newLoi) || newLoi < 0 || newLoi > 10) {
+                alert('LOI має бути числом від 0 до 10');
+                return;
+            }
+
+            const res = await fetch('/api/loiRequest/create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify({
+                    PointId: pointId,
+                    RequestedLoi: newLoi
+                })
+            });
+
+            if (res.ok) {
+                document.getElementById('msg').innerText = 'Запит відправлено!';
+            } else {
+                const errorText = await res.text();
+                document.getElementById('msg').innerText = `Помилка ${res.status}: ${errorText}`;
+            }
+        }
+    </script>
+}

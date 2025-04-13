@@ -14,8 +14,10 @@
 
     <div class="input-group">
         <label>Інклюзивність:</label>
-        <select id="loi"></select>
+        <select id="loi">
+        </select>
     </div>
+
 
     <div class="input-group">
         <label>Email:</label>
@@ -48,6 +50,7 @@
         if (!token) location.href = '/Auth/Login';
 
         const inclusives = [
+            "Немає/Не вибрано",
             "Вади зору(сліпота, слабозорість)",
             "Вади слуху(глухота, слабочуючість)",
             "Порушення опорно - рухового апарату(інвалідність колісного типу, милиці)",
@@ -109,15 +112,19 @@
         document.getElementById('saveBtn').onclick = async () => {
             const password = document.getElementById('password').value.trim();
 
+            let selectedLoi = loiSelect.value;
+            const inclusivnessList = selectedLoi === "Немає/Не вибрано" ? [] : [selectedLoi];
+
             const body = {
                 id: userData.id,
                 name: document.getElementById('name').value.trim(),
-                role: loiSelect.value ? 'inclusive' : userData.role,
+                role: inclusivnessList.length ? 'inclusive' : 'user',
                 email: userData.email,
                 points: userData.points ?? [],
-                inclusivness: [loiSelect.value],
+                inclusivness: inclusivnessList,
                 hashedPassword: password ? password : userData.hashedPassword
             };
+
 
             if (!body.name) {
                 alert('Ім\'я не може бути порожнім.');

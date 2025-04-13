@@ -38,6 +38,9 @@ builder.Services.AddScoped<IPointRepository, PointRepository>();
 builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<ITransportRepository, TransportRepository>();
 builder.Services.AddScoped<IPointRequestRepository, PointRequestRepository>();
+builder.Services.AddScoped<ILoiRequestRepository, LoiRequestRepository>();
+
+
 
 var jwt = builder.Configuration.GetSection("Jwt").Get<JwtSettings>()!;
 var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.Secret));

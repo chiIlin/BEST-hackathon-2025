@@ -17,7 +17,9 @@ namespace best_hackathon_2025.MongoDB.Collections
         public int? ManualLOI { get; set; }        // Manual Level Of Inclusiveness
         public string Address { get; set; }
         public string Description { get; set; }
-        public List<string> ReviewIds { get; set; }
+        [BsonElement("ReviewIds")]
+        public List<string> ReviewIds { get; set; } = new List<string>();
+
         public bool Verified { get; set; }
     }
 
