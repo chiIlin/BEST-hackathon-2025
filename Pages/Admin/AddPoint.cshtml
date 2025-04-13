@@ -20,8 +20,27 @@
         <label for="lng">Longitude</label>
         <input id="lng" type="text" readonly />
 
-        <label for="loi">Інклюзивність</label>
-        <select id="loi"></select>
+        <div class="inclusivity-container">
+            <label>Інклюзивності</label>
+            <button type="button" onclick="toggleInclusives()" class="btn">Оберіть інклюзивності</button>
+
+            <div id="inclusiveList" style="display: none; margin-top:0px;">
+                @foreach (var inclusive in new List<string>{
+                "Пандус", "Ліфт", "Тактильна плитка", "Звукові сигнали",
+                "Дублювання тексту шрифтом Брайля", "Вказівники для слабозорих", "Інклюзивна вбиральня",
+                "Паркування для інвалідів", "Занижений бордюр", "Доступна каса",
+                "Доступний вхід без сходів", "Спеціальні меблі", "Дублювання інформації жестовою мовою",
+                "Розмітка на підлозі", "Антиковзаюче покриття", "Звукові оголошення",
+                "Доступність громадського транспорту", "Широкі проходи для колясок", "Пандус в транспорті", "Показ з субтитрами"
+                })
+                {
+                    <label class="inclusive-item">
+                        <input type="checkbox" value="@inclusive" class="inclusive-checkbox" />
+                        <span>@inclusive</span>
+                    </label>
+                }
+            </div>
+        </div>
 
         <button id="savePoint" class="btn">Зберегти</button>
         <p id="msg" class="status-message"></p>
@@ -30,14 +49,11 @@
 
 @section Scripts {
     <script async defer src="https://maps.googleapis.com/maps/api/js?key=@Config["GoogleMaps:ApiKey"]&callback=initMap"></script>
+
     <script>
         let map, marker, latLng;
         const token = localStorage.getItem('token');
         if (!token) location.href = '/Auth/Login';
-
-        const inclusives = [
-            "Пандус", "Ліфт", "Тактильна плитка", "Звукові сигнали", "Дублювання тексту шрифтом Брайля"
-        ];
 
         function initMap() {
             map = new google.maps.Map(document.getElementById('map'), {
@@ -52,9 +68,11 @@
                 document.getElementById('lat').value = latLng.lat();
                 document.getElementById('lng').value = latLng.lng();
             });
+        }
 
-            const loiSelect = document.getElementById('loi');
-            inclusives.forEach(i => loiSelect.innerHTML += `<option value="${i}">${i}</option>`);
+        function toggleInclusives() {
+            const list = document.getElementById('inclusiveList');
+            list.style.display = list.style.display === 'none' ? 'block' : 'none';
         }
 
         document.getElementById('savePoint').onclick = async () => {
@@ -62,16 +80,17 @@
 
             const address = document.getElementById('addr').value.trim();
             const description = document.getElementById('descr').value.trim();
-
             if (!address) { alert('Введіть адресу / назву точки'); return; }
             if (!description) { alert('Введіть опис точки'); return; }
+
+            const categories = Array.from(document.querySelectorAll('.inclusive-checkbox:checked')).map(x => x.value);
 
             const body = {
                 Latitude: latLng.lat(),
                 Longitude: latLng.lng(),
                 Address: address,
                 Description: description,
-                Categories: [],
+                Categories: categories,
                 LOI: 0
             };
 

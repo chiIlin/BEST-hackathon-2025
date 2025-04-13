@@ -8,6 +8,13 @@
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
 
+.inclusive-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 5px;
+}
+
 .map-container {
     height: 400px;
     margin-bottom: 20px;
@@ -47,4 +54,43 @@
 .status-message {
     margin-top: 10px;
     color: #ff4d4d;
+}
+
+#inclusiveList {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 8px 20px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #444;
+}
+
+.inclusive-item {
+    background: #353548;
+    padding: 8px 12px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: background 0.2s ease;
+}
+
+    .inclusive-item:hover {
+        background: #44445a;
+    }
+
+    .inclusive-item input {
+        transform: scale(1.2);
+        accent-color: #4caf50;
+    }
+
+.inclusive-container label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 8px;
+}
+
+#inclusiveList span {
+    font-size: 15px;
+    line-height: 1.2;
 }

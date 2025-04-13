@@ -690,7 +690,7 @@
                 infoContent.innerHTML = `
                     <p class="info-item"><strong>${p.address || 'Назва місця, вулиці'}</strong></p>
                     <p class="info-item"><strong>Опис:</strong> ${p.description || 'Немає опису'}</p>
-                    <p class="info-item"><strong>LOI:</strong> ${p.loi}</p>
+                    <p class="info-item"><strong>Доступність(0-10):</strong> ${p.loi}</p>
                     <p class="info-item"><strong>Категорії:</strong> ${(p.categories ?? []).join(', ') || '-'}</p>
                     <p class="info-item"><strong>Перевірено:</strong> ${p.verified ? 'Так' : 'Ні'}</p>
                     ${userToken ? `<button class="save-point-btn" onclick="savePoint('${p.id}')">Зберегти точку</button>` : ''}
