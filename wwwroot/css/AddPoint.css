@@ -167,3 +167,40 @@ input::placeholder, textarea::placeholder {
     transition: background 0.3s ease;
     margin-left: 0; /* Вирівнює кнопку по лівому краю */
 }
+
+/* Додаємо стилі для кнопки "На головну" */
+.top-panel {
+    margin-bottom: 40px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+    width: 100%;
+}
+
+/* Уніфікований стиль для кнопки "На головну" */
+.back-to-home {
+    position: absolute; /* Фіксуємо позицію */
+    top: 10px; /* Відступ від верхнього краю */
+    left: 10px; /* Відступ від лівого краю */
+    text-decoration: none;
+    color: #31EB78;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    background: #2D2929;
+    padding: 8px 12px;
+    border-radius: 5px;
+    transition: background 0.3s, color 0.3s;
+}
+
+.back-to-home:hover {
+    background: #31EB78;
+    color: #191919;
+}
+
+.back-to-home i {
+    margin-right: 5px;
+    font-size: 18px;
+}
+
+/* Видалено стилі для кнопки "Профіль" */

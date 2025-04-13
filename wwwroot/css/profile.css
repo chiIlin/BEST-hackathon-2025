@@ -166,40 +166,53 @@ ul li:last-child {
         margin-right: 5px;
     }
 
-.top-panel {
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-}
-
-.logo-link {
-    display: flex;
-    align-items: center;
+/* Уніфікований стиль для кнопки "На головну" */
+.back-to-home {
+    position: absolute; /* Фіксуємо позицію */
+    top: 10px; /* Відступ від верхнього краю */
+    left: 10px; /* Відступ від лівого краю */
     text-decoration: none;
-    color: white;
-    transition: color 0.2s;
+    color: #31EB78;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    background: #2D2929;
+    padding: 8px 12px;
+    border-radius: 5px;
+    transition: background 0.3s, color 0.3s;
 }
 
-    .logo-link:hover {
-        color: #4caf50;
-    }
-
-.logo-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 6px);
-    grid-gap: 4px;
-    margin-right: 8px;
+.back-to-home:hover {
+    background: #31EB78;
+    color: #191919;
 }
 
-    .logo-grid div {
-        width: 6px;
-        height: 6px;
-        background-color: #4caf50;
-    }
-
-.brand-name {
-    font-size: 20px;
-    font-weight: bold;
-    letter-spacing: 1px;
+.back-to-home i {
+    margin-right: 5px;
+    font-size: 18px;
 }
 
+body .back-to-home {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    text-decoration: none;
+    color: #31EB78;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    background: #2D2929;
+    padding: 8px 12px;
+    border-radius: 5px;
+    transition: background 0.3s, color 0.3s;
+}
+
+body .back-to-home:hover {
+    background: #31EB78;
+    color: #191919;
+}
+
+body .back-to-home i {
+    margin-right: 5px;
+    font-size: 18px;
+}
