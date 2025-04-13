@@ -692,6 +692,28 @@
                 const addReviewSection = document.querySelector('.add-review');
                 const displayLoi = p.manualLOI !== null && p.manualLOI !== undefined ? p.manualLOI : p.loi;
 
+                let savedButtonText = 'Зберегти точку';
+                let savedButtonAction = `savePoint('${p.id}')`;
+
+                if (userToken) {
+                    // Перевіряємо, чи точка вже збережена
+                    try {
+                        const checkRes = await fetch(`/api/user/isPointSaved/${p.id}`, {
+                            headers: { Authorization: 'Bearer ' + userToken }
+                        });
+                        
+                        if (checkRes.ok) {
+                            const isSaved = await checkRes.json();
+                            if (isSaved) {
+                                savedButtonText = 'Точка збережена - Відмінити';
+                                savedButtonAction = `alert('Функція відміни збереження ще не реалізована');`;
+                            }
+                        }
+                    } catch (err) {
+                        console.error("Помилка перевірки збереження точки:", err);
+                    }
+                }
+
                 // Інфа про поінт
                 infoContent.innerHTML = `
                     <p class="info-item"><strong>${p.address || 'Назва місця, вулиці'}</strong></p>
@@ -701,13 +723,13 @@
                     </p>
                     <p class="info-item"><strong>Категорії:</strong> ${(p.categories ?? []).join(', ') || '-'}</p>
                     <p class="info-item"><strong>Перевірено:</strong> ${p.verified ? 'Так' : 'Ні'}</p>
-                    ${userToken ? `<button class="save-point-btn" onclick="savePoint('${p.id}')">Зберегти точку</button>` : ''}
+                    <button class="save-point-btn" onclick="${savedButtonAction}">${savedButtonText}</button>
                 `;
 
                 reviewsSection.style.display = 'block';
                 addReviewSection.style.display = 'block';
 
-                // Завантажуємо відгуки з нормального ендпоінта
+                // Завантажуємо відгуки
                 await loadReviews(p.id);
 
                 document.getElementById('rev').value = '';
@@ -725,10 +747,19 @@
                     return;
                 }
 
+                const reviewText = document.getElementById('rev').value;
+                const rating = +document.getElementById('rate').value;
+                
+                // Перевірка, чи не пустий відгук
+                if (!reviewText || rating === 0) {
+                    alert("Будь ласка, введіть текст відгуку та поставте оцінку.");
+                    return;
+                }
+
                 const body = {
                     pointId: selectedPoint.id,
-                    reviewText: document.getElementById('rev').value,
-                    rating: +document.getElementById('rate').value
+                    reviewText: reviewText,
+                    rating: rating
                 };
 
                 const res = await fetch('/api/review', {
@@ -741,8 +772,18 @@
                 });
 
                 if (res.ok) {
-                    alert('Відгук додано');
-                    loadReviews(selectedPoint.id);
+                    // Очищаємо поле вводу відгуку
+                    document.getElementById('rev').value = '';
+                    
+                    // Скидаємо рейтинг зірок до початкового стану
+                    document.getElementById('rate').value = 0;
+                    document.querySelectorAll('.star-rating').forEach(star => {
+                        star.classList.remove('bi-star-fill');
+                        star.classList.add('bi-star');
+                    });
+                    
+                    // Перезавантажуємо відгуки
+                    await loadReviews(selectedPoint.id);
                 } else {
                     const err = await res.text();
                     alert('Помилка: ' + err);
@@ -807,11 +848,49 @@
 
 
             async function savePoint(id) {
+                if (!userToken) {
+                    // Використовуємо абсолютний URL для перенаправлення
+                    window.location.href = '/Auth/Login';
+                    return;
+                }
+                
+                const button = document.querySelector('.save-point-btn');
+                
                 const res = await fetch('/api/user/savePoint/' + id, {
                     method: 'POST',
                     headers: { Authorization: 'Bearer ' + userToken }
                 });
-                if (res.ok) alert('Збережено'); else alert('Помилка');
+                
+                if (res.ok) {
+                    // Змінюємо текст і функціонал кнопки
+                    button.textContent = 'Точка збережена - Відмінити';
+                    // Зберігаємо ID точки в атрибуті даних
+                    button.setAttribute('data-point-id', id);
+                    // Змінюємо onclick для відміни
+                    button.onclick = function() { 
+                        alert('Функція відміни збереження ще не реалізована');
+                        // Або коли у вас буде API для видалення:
+                        // removeSavedPoint(id); 
+                    };
+                } else {
+                    alert('Помилка збереження');
+                }
+            }
+
+            async function removeSavedPoint(id) {
+                const button = document.querySelector('.save-point-btn');
+                
+                const res = await fetch('/api/user/removeSavedPoint/' + id, {
+                    method: 'DELETE',
+                    headers: { Authorization: 'Bearer ' + userToken }
+                });
+                
+                if (res.ok) {
+                    button.textContent = 'Зберегти точку';
+                    button.onclick = function() { savePoint(id); };
+                } else {
+                    alert('Помилка при відміні збереження');
+                }
             }
 
             function setPointA(position) {
