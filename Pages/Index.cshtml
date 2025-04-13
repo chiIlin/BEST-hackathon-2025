@@ -387,7 +387,7 @@
 
                 const polyline = new google.maps.Polyline({
                     path: route.overview_path,
-                    strokeColor: '#000000', // чорний для вибраного
+                    strokeColor: '#14d378', 
                     strokeOpacity: 1,
                     strokeWeight: 6,
                     map: map
@@ -1173,6 +1173,56 @@ document.addEventListener('DOMContentLoaded', () => {
     addReviewSection.style.display = 'none';
 });
 </script>
+        <script>
+document.addEventListener('DOMContentLoaded', () => {
+    const authLinks = document.querySelector('.auth-links');
+    const token = localStorage.getItem('token');
+
+    if (token) {
+        // Якщо токен є, показуємо кнопку "Профіль"
+        authLinks.innerHTML = `
+            <a href="/Auth/Profile" class="profile-btn">
+                <i class="bi bi-person-circle"></i> Профіль
+            </a>
+        `;
+    } else {
+        // Якщо токена немає, залишаємо кнопки "Увійти" і "Реєстрація"
+        authLinks.innerHTML = `
+            <a href="/Auth/Login" class="nav-link">Увійти</a>
+            <a href="/Auth/Register" class="nav-link register-link">Реєстрація</a>
+        `;
+    }
+});
+</script>
+<script> 
+    document.addEventListener('DOMContentLoaded', () => {
+    const authLinks = document.querySelector('.auth-links');
+    const token = localStorage.getItem('token');
+    
+    if (token && isValidToken(token)) {
+        // Якщо токен є і він валідний, показуємо кнопку "Профіль"
+        authLinks.innerHTML = `
+            <a href="/Auth/Profile" class="profile-btn">
+                <i class="bi bi-person-circle"></i> Профіль
+            </a>
+        `;
+    } else {
+        // Якщо токена немає або він невалідний, очищаємо його і показуємо кнопки "Увійти" і "Реєстрація"
+        if (token) localStorage.removeItem('token'); // Видаляємо невалідний токен
+        
+        authLinks.innerHTML = `
+            <a href="/Auth/Login" class="nav-link">Увійти</a>
+            <a href="/Auth/Register" class="nav-link register-link">Реєстрація</a>
+        `;
+    }
+});
+
+// Функція для перевірки валідності токена
+function isValidToken(token) {
+    // Базова перевірка, що токен має правильний формат (JWT зазвичай має 3 секції, розділені крапками)
+    return token && typeof token === 'string' && token.split('.').length === 3;
+}
+</script>
     }
 </body>
-</html>                     
+</html>
