@@ -8,6 +8,7 @@
 - Razor Pages (Front)
 - Google Maps API
 - JWT Authentication (Bearer Token)
+- Python (Pytorch, matplotlib, numpy, pandas)
 
 ---
 
