@@ -26,31 +26,37 @@
         <!-- Header/Navigation Bar -->
         <header class="top-navbar">
             <div class="logo-container">
-                <div class="logo-grid">
-                    <div></div><div></div><div></div>
-                    <div></div><div></div><div></div>
-                    <div></div><div></div><div></div>
-                </div>
-                <span class="brand-name">CHILLGO</span>
+                <a href="/" class="logo-link">
+                    <div class="logo-grid">
+                        <div></div><div></div><div></div>
+                        <div></div><div></div><div></div>
+                        <div></div><div></div><div></div>
+                    </div>
+                    <span class="brand-name">CHILLGO</span>
+                </a>
             </div>
             
             <div class="search-container">
                 <div class="search-box">
                     <i class="bi bi-search search-icon"></i>
-                    <input type="text" id="searchInput" placeholder="Пошук" />
-                    <div id="searchSuggestions" style="position:absolute; background:white; border:1px solid #ccc; z-index:99; display:none; max-height:200px; overflow-y:auto; width:250px; top: 40px;"></div>
+                    <input type="text" id="searchInput" placeholder="Пошук" oninput="searchPoints(this.value)" />
+                    <div id="searchSuggestions" class="search-suggestions"></div>
                 </div>
             </div>
 
             <div class="filter-container">
-                <select id="disabilityFilter" onchange="filterPoints()">
-                    <option value="all">Усі поінти</option>
-                    <option value="vision">Вади зору</option>
-                    <option value="hearing">Вади слуху</option>
-                    <option value="movement">Порушення ОРА</option>
-                    <option value="prosthesis">Протези/Ортопедія</option>
-                    <option value="coordination">Координація рухів</option>
-                </select>
+                <div class="filter-dropdown">
+                    <i class="bi bi-sliders filter-icon" onclick="toggleFilterMenu()"></i>
+                    <span id="selectedFilter" class="selected-filter">Усі поінти</span>
+                    <div class="filter-menu" id="filterMenu">
+                        <div class="filter-item" onclick="applyFilter('all')">Усі поінти</div>
+                        <div class="filter-item" onclick="applyFilter('vision')">Вади зору</div>
+                        <div class="filter-item" onclick="applyFilter('hearing')">Вади слуху</div>
+                        <div class="filter-item" onclick="applyFilter('movement')">Порушення ОРА</div>
+                        <div class="filter-item" onclick="applyFilter('prosthesis')">Протези/Ортопедія</div>
+                        <div class="filter-item" onclick="applyFilter('coordination')">Координація рухів</div>
+                    </div>
+                </div>
             </div>
 
             <div class="nav-actions">
@@ -70,12 +76,8 @@
             <aside class="sidebar" id="sidebar">
                 <div class="info-section">
                     <h2 class="section-header">Інформація:</h2>
-                    <div class="info-content">
-                        <p class="info-item"><strong>Назва місця, вулиці</strong></p>
-                        <p class="info-item"><strong>LOI:</strong> 0</p>
-                        <p class="info-item"><strong>Категорії:</strong> -</p>
-                        <p class="info-item"><strong>Перевірено:</strong> Ні</p>
-                        <button class="save-point-btn">Зберегти точку</button>
+                    <div class="info-content" id="infoContent">
+                        <p class="info-placeholder">Виберіть точку на карті щоб побачити інформацію</p>
                     </div>
                 </div>
 
@@ -119,6 +121,7 @@
                             <i class="bi bi-geo-alt-fill"></i>
                             <input type="text" id="pointBInput" placeholder="Куди?" />
                         </div>
+                        <button class="clear-route-btn" onclick="clearRouteInputs()">Очистити</button> <!-- Нова кнопка -->
                     </div>
                     
                     <div class="route-results" id="routeResults">
@@ -155,7 +158,6 @@
                 
                 <!-- Controls -->
                 <div class="map-controls">
-
 
                     <button class="zoom-button zoom-in">+</button>
                     <button class="zoom-button zoom-out">−</button>
@@ -426,11 +428,6 @@
                     
                     routeResults.innerHTML += instructionHTML;
                 });
-                
-                // Додаємо кнопку для нового маршруту
-                routeResults.innerHTML += `
-                    <button onclick="resetRoute()" class="new-route-btn">Новий маршрут</button>
-                `;
             }
 
             let currentTheme = localStorage.getItem('theme') || 'dark'; // За замовчуванням темна тема
@@ -645,55 +642,66 @@
             }
 
             async function showPointInfo(p) {
-                document.querySelector('.info-content').innerHTML = `
+                const infoContent = document.getElementById('infoContent');
+                const reviewsSection = document.querySelector('.reviews-section');
+                const reviewsContainer = document.getElementById('reviews');
+                const addReviewSection = document.querySelector('.add-review');
+            
+                // Оновлюємо інформацію про точку
+                infoContent.innerHTML = `
                     <p class="info-item"><strong>${p.address || 'Назва місця, вулиці'}</strong></p>
                     <p class="info-item"><strong>LOI:</strong> ${p.loi}</p>
                     <p class="info-item"><strong>Категорії:</strong> ${(p.categories ?? []).join(', ') || '-'}</p>
                     <p class="info-item"><strong>Перевірено:</strong> ${p.verified ? 'Так' : 'Ні'}</p>
-
                     ${userToken ? `<button class="save-point-btn" onclick="savePoint('${p.id}')">Зберегти точку</button>` : ''}
-
-                    ${currentPosition && p.position ? `<button class="route-btn" onclick="setPointA(${JSON.stringify(p.position)})">Задати як точку A</button>
-                                                       <button class="route-btn" onclick="setPointB(${JSON.stringify(p.position)})">Задати як точку B</button>` : ''}
-
-                    ${currentPosition && p.latitude && p.longitude ? `<button class="route-btn" onclick="buildRoute({lat: ${p.latitude}, lng: ${p.longitude}})">Прокласти маршрут</button>` : ''}
                 `;
-
-                loadReviews(p.id);
-            }
-
-            async function loadReviews(pointId) {
+            
+                // Показуємо секцію відгуків
+                reviewsSection.style.display = 'block';
+            
+                // Завантажуємо відгуки для вибраної точки
                 try {
-                    const res = await fetch('/api/review/byPoint/' + pointId);
-                    const rev = await res.json();
-                    const rblock = document.getElementById('reviews');
-                    rblock.innerHTML = "";
-                    
-                    if (rev.length == 0) {
-                        // Add empty placeholders
-                        rblock.innerHTML += `
+                    const res = await fetch(`/api/review/byPoint/${p.id}`);
+                    const reviews = await res.json();
+            
+                    // Очищаємо контейнер відгуків
+                    reviewsContainer.innerHTML = '';
+            
+                    if (reviews.length === 0) {
+                        // Якщо відгуків немає, показуємо плейсхолдер
+                        reviewsContainer.innerHTML = `
                             <div class="review-placeholder">На жаль, відгуків немає(</div>
                             <div class="review-text">Можете додати свій!</div>
                         `;
                     } else {
-                        rev.forEach(r => {
-                            rblock.innerHTML += `
+                        // Додаємо відгуки
+                        reviews.forEach(review => {
+                            reviewsContainer.innerHTML += `
                                 <div class="review-item">
                                     <div class="review-rating">
-                                        ${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}
+                                        ${'★'.repeat(review.rating)}${'☆'.repeat(5 - review.rating)}
                                     </div>
-                                    <div class="review-text">${r.reviewText}</div>
-                                </div>`;
+                                    <div class="review-text">${review.reviewText}</div>
+                                </div>
+                            `;
                         });
                     }
                 } catch (error) {
-                    // If there's an error, show placeholders
-                    const rblock = document.getElementById('reviews');
-                    rblock.innerHTML = `
-                        <div class="review-placeholder">На жаль, відгуків немає(</div>
-                        <div class="review-text">Можете додати свій!</div>
+                    console.error('Помилка завантаження відгуків:', error);
+                    reviewsContainer.innerHTML = `
+                        <div class="review-placeholder">Відгуків ще немає.</div>
                     `;
                 }
+            
+                // Завжди показуємо форму додавання відгуків
+                addReviewSection.style.display = 'block';
+                document.getElementById('rev').value = ''; // Очищаємо текстове поле
+                document.getElementById('rate').value = 0; // Скидаємо рейтинг
+                const stars = document.querySelectorAll('.star-rating');
+                stars.forEach(star => {
+                    star.classList.remove('bi-star-fill');
+                    star.classList.add('bi-star');
+                });
             }
 
             async function addReview(pointId) {
@@ -783,23 +791,23 @@
 
                 suggestions.innerHTML = '';
                 found.forEach(p => {
-                    suggestions.innerHTML += `
-                        <div style="padding:5px; cursor:pointer;" onclick='selectSearchPoint(${p.latitude}, ${p.longitude}, ${JSON.stringify(p)})'>${p.address}</div>
-                    `;
+                    const item = document.createElement('div');
+                    item.className = 'search-suggestion-item';
+                    item.textContent = p.address;
+                    item.onclick = () => {
+                        focusPoint(p.latitude, p.longitude);
+                        showPointInfo(p);
+                        suggestions.style.display = 'none';
+                    };
+                    suggestions.appendChild(item);
                 });
                 suggestions.style.display = 'block';
             }
-
-
-
-
 
             function focusPoint(lat, lng) {
                 map.setCenter({ lat, lng });
                 map.setZoom(16);
             }
-
-
 
             function setupSearch() {
 
@@ -873,7 +881,90 @@
                 }
             }
         </script>
+        <script>
+    function toggleFilterMenu() {
+        const menu = document.getElementById('filterMenu');
+        menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function applyFilter(filterType) {
+        toggleFilterMenu(); // Закриваємо меню після вибору
+        filterPoints(filterType); // Викликаємо існуючу функцію для фільтрації
+
+        // Оновлюємо текст вибраного фільтра
+        const filterNames = {
+            all: "Усі поінти",
+            vision: "Вади зору",
+            hearing: "Вади слуху",
+            movement: "Порушення ОРА",
+            prosthesis: "Протези/Ортопедія",
+            coordination: "Координація рухів"
+        };
+        document.getElementById('selectedFilter').innerText = filterNames[filterType] || "Усі поінти";
+    }
+
+    // Модифікуємо функцію filterPoints для прийому параметра
+    function filterPoints(type = 'all') {
+        const markers = window.markers || [];
+        markers.forEach(m => m.setMap(null)); // Прибираємо всі маркери
+
+        if (type === 'all') {
+            markers.forEach(m => m.setMap(map));
+            return;
+        }
+
+        const requiredCategories = disabilityCategories[type];
+        markers.forEach((m, idx) => {
+            const point = allPoints[idx];
+            if (point.categories && point.categories.some(c => requiredCategories.includes(c))) {
+                m.setMap(map);
+            }
+        });
+    }
+
+    // Закриваємо меню при кліку поза ним
+    document.addEventListener('click', (e) => {
+        const menu = document.getElementById('filterMenu');
+        if (!menu.contains(e.target) && !e.target.classList.contains('filter-icon')) {
+            menu.style.display = 'none';
+        }
+    });
+</script>
         <script async defer src="https://maps.googleapis.com/maps/api/js?key=@Configuration["GoogleMaps:ApiKey"]&callback=initMap"></script>
+        <script>
+    function clearRouteInputs() {
+        // Очищаємо текстові поля
+        document.getElementById('pointAInput').value = '';
+        document.getElementById('pointBInput').value = '';
+
+        // Видаляємо точки A і B з карти
+        if (pointAMarker) {
+            pointAMarker.setMap(null);
+            pointAMarker = null;
+        }
+        if (pointBMarker) {
+            pointBMarker.setMap(null);
+            pointBMarker = null;
+        }
+
+        // Скидаємо змінні точок
+        pointA = null;
+        pointB = null;
+
+        // Очищаємо маршрут
+        resetRoute();
+    }
+</script>
+        <script>
+document.addEventListener('DOMContentLoaded', () => {
+    const reviewsSection = document.querySelector('.reviews-section');
+    const addReviewSection = document.querySelector('.add-review');
+
+    // Ховаємо секцію відгуків і форму додавання відгуків
+    reviewsSection.style.display = 'none';
+    addReviewSection.style.display = 'none';
+});
+</script>
     }
 </body>
 </html>

@@ -68,3 +68,36 @@
     font-size: 14px;
     margin-top: 10px;
 }
+
+body {
+    user-select: none; /* Забороняємо виділення тексту */
+}
+
+input, button, textarea {
+    user-select: text; /* Дозволяємо виділення тексту в полях вводу */
+}
+
+.back-to-home {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    text-decoration: none;
+    color: #31EB78; /* Зелений колір, що відповідає стилю сторінки */
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    background: #2D2929; /* Темно-сірий фон */
+    padding: 8px 12px;
+    border-radius: 5px;
+    transition: background 0.3s, color 0.3s;
+}
+
+.back-to-home:hover {
+    background: #31EB78; /* Зелений фон при наведенні */
+    color: #191919; /* Темний текст */
+}
+
+.back-to-home i {
+    margin-right: 5px;
+    font-size: 18px;
+}
