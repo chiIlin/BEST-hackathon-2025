@@ -641,8 +641,7 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ disabilityType: currentFilterType === 'all' ? null : currentFilterType })
+                    }
                 });
 
                 const data = await res.json();
@@ -652,8 +651,9 @@
                     p.loi = newLoi;
                 });
 
-                filterPoints();
+                filterPoints(); // оновлення маркерів на мапі
             }
+
 
 
             async function loadReviews(pointId) {
@@ -708,23 +708,23 @@
                 let savedButtonAction = `savePoint('${p.id}')`;
 
                 if (userToken) {
-                    // Перевіряємо, чи точка вже збережена
                     try {
                         const checkRes = await fetch(`/api/user/isPointSaved/${p.id}`, {
                             headers: { Authorization: 'Bearer ' + userToken }
                         });
-                        
+
                         if (checkRes.ok) {
                             const isSaved = await checkRes.json();
                             if (isSaved) {
                                 savedButtonText = 'Точка збережена - Відмінити';
-                                savedButtonAction = `alert('Функція відміни збереження ще не реалізована');`;
+                                savedButtonAction = `removeSavedPoint('${p.id}')`;
                             }
                         }
                     } catch (err) {
                         console.error("Помилка перевірки збереження точки:", err);
                     }
                 }
+
 
                 // Інфа про поінт
                 infoContent.innerHTML = `
@@ -861,45 +861,42 @@
 
             async function savePoint(id) {
                 if (!userToken) {
-                    // Використовуємо абсолютний URL для перенаправлення
                     window.location.href = '/Auth/Login';
                     return;
                 }
-                
+
                 const button = document.querySelector('.save-point-btn');
-                
+
                 const res = await fetch('/api/user/savePoint/' + id, {
                     method: 'POST',
                     headers: { Authorization: 'Bearer ' + userToken }
                 });
-                
+
                 if (res.ok) {
-                    // Змінюємо текст і функціонал кнопки
                     button.textContent = 'Точка збережена - Відмінити';
-                    // Зберігаємо ID точки в атрибуті даних
                     button.setAttribute('data-point-id', id);
-                    // Змінюємо onclick для відміни
-                    button.onclick = function() { 
-                        alert('Функція відміни збереження ще не реалізована');
-                        // Або коли у вас буде API для видалення:
-                        // removeSavedPoint(id); 
-                    };
+                    button.onclick = function () { removeSavedPoint(id); };
                 } else {
                     alert('Помилка збереження');
                 }
             }
 
             async function removeSavedPoint(id) {
+                if (!userToken) {
+                    window.location.href = '/Auth/Login';
+                    return;
+                }
+
                 const button = document.querySelector('.save-point-btn');
-                
+
                 const res = await fetch('/api/user/removeSavedPoint/' + id, {
                     method: 'DELETE',
                     headers: { Authorization: 'Bearer ' + userToken }
                 });
-                
+
                 if (res.ok) {
                     button.textContent = 'Зберегти точку';
-                    button.onclick = function() { savePoint(id); };
+                    button.onclick = function () { savePoint(id); };
                 } else {
                     alert('Помилка при відміні збереження');
                 }
@@ -1081,7 +1078,16 @@
                 setPointB({ lat: selectedPoint.latitude, lng: selectedPoint.longitude });
             }
 
-            
+            async function loadPoints() {
+                const res = await fetch('/api/point');
+                allPoints = await res.json();
+
+                markers.forEach(m => m.setMap(null));
+                markers = [];
+
+                allPoints.forEach(addMarker);
+            }
+
 
 
         </script>

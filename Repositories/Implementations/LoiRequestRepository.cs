@@ -7,12 +7,16 @@ namespace best_hackathon_2025.Repositories.Implementations
 {
     public class LoiRequestRepository : ILoiRequestRepository
     {
+        private readonly IMongoCollection<Point> _points;
         private readonly IMongoCollection<LoiRequest> _collection;
 
         public LoiRequestRepository(MongoDbContext context)
         {
             _collection = context.LoiRequest;
+            _points = context.Points; // важливо!!!
         }
+
+
 
         public async Task<List<LoiRequest>> GetAllAsync()
         {
@@ -38,5 +42,19 @@ namespace best_hackathon_2025.Repositories.Implementations
         {
             await _collection.DeleteOneAsync(x => x.Id == id);
         }
+        public async Task UpdatePointLoiAsync(string pointId, int newLoi)
+        {
+            var filter = Builders<Point>.Filter.Eq(x => x.Id, pointId);
+            var update = Builders<Point>.Update.Set(x => x.LOI, newLoi);
+            await _points.UpdateOneAsync(filter, update);
+        }
+
+        public async Task UpdatePointManualLoiAsync(string pointId, int newManualLoi)
+        {
+            var filter = Builders<Point>.Filter.Eq(x => x.Id, pointId);
+            var update = Builders<Point>.Update.Set(x => x.ManualLOI, newManualLoi);
+            await _points.UpdateOneAsync(filter, update);
+        }
+
     }
 }

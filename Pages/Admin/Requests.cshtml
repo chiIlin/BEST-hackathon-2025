@@ -194,11 +194,17 @@
                 method: 'POST',
                 headers: { Authorization: 'Bearer ' + token }
             });
+
             if (res.ok) {
                 alert('LOI оновлено');
-                loadLoiRequests();
-            } else alert('Помилка схвалення LOI');
+                await loadLoiRequests(); // перезагрузка таблиці
+                await recalculateLoi();  // перезагрузка LOI на мапі
+            } else {
+                const error = await res.text();
+                alert('Помилка схвалення LOI: ' + error);
+            }
         }
+
 
         async function rejectLoi(id) {
             const res = await fetch(`/api/loirequest/${id}`, {
@@ -218,5 +224,21 @@
             map.setCenter(pos);
             map.setZoom(15);
         }
+        async function approveLoi(id) {
+            const res = await fetch(`/api/loirequest/${id}/approve`, {
+                method: 'POST',
+                headers: { Authorization: 'Bearer ' + token }
+            });
+
+            if (res.ok) {
+                alert('LOI оновлено');
+                await loadLoiRequests();  // перезавантаження таблиці заявок
+                await loadPoints();       // перезавантаження маркерів на мапі
+            } else {
+                const error = await res.text();
+                alert('Помилка схвалення LOI: ' + error);
+            }
+        }
+
     </script>
 }

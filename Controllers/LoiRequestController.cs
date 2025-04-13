@@ -3,6 +3,9 @@ using best_hackathon_2025.Repositories.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Driver;
+using best_hackathon_2025.MongoDB;
+
 using System.Security.Claims;
 
 namespace best_hackathon_2025.Controllers
@@ -12,11 +15,14 @@ namespace best_hackathon_2025.Controllers
     public class LoiRequestController : ControllerBase
     {
         private readonly ILoiRequestRepository _loiRequestRepository;
+        private readonly IMongoCollection<Point> _pointCollection;
 
-        public LoiRequestController(ILoiRequestRepository loiRequestRepository)
+        public LoiRequestController(ILoiRequestRepository loiRequestRepository, MongoDbContext context)
         {
             _loiRequestRepository = loiRequestRepository;
+            _pointCollection = context.Points;  // Додаєш це!!!
         }
+
 
         [HttpGet]
         [Authorize(Roles = "admin")]
@@ -73,7 +79,29 @@ namespace best_hackathon_2025.Controllers
             await _loiRequestRepository.DeleteAsync(id);
             return Ok("Request deleted");
         }
+
+        [HttpPost("{id}/approve")]
+        [Authorize(Roles = "admin")]
+        public async Task<IActionResult> Approve(string id)
+        {
+            var request = await _loiRequestRepository.GetByIdAsync(id);
+            if (request == null)
+                return NotFound("Request not found");
+
+            request.Status = "approved";
+            await _loiRequestRepository.UpdateAsync(id, request);
+
+            await _loiRequestRepository.UpdatePointManualLoiAsync(request.PointId, request.RequestedLoi);
+
+
+            return Ok("LOI updated");
+        }
+
+
+
+
     }
+
 
     public class LoiRequestDto
     {

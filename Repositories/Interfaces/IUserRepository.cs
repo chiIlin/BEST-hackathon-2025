@@ -13,6 +13,7 @@ namespace best_hackathon_2025.Repositories.Interfaces
         Task SavePointAsync(string userId, string pointId);
         Task<List<User>> GetManyByIdsAsync(List<string> ids);
         Task RemovePointAsync(string userId, string pointId);
+        Task RemoveSavedPointAsync(string userId, string pointId);
 
     }
 

@@ -9,5 +9,9 @@ namespace best_hackathon_2025.Repositories.Interfaces
         Task CreateAsync(LoiRequest loiRequest);
         Task UpdateAsync(string id, LoiRequest loiRequest);
         Task DeleteAsync(string id);
+        Task UpdatePointLoiAsync(string pointId, int newLoi);
+
+        Task UpdatePointManualLoiAsync(string pointId, int newManualLoi);
+
     }
 }
