@@ -97,5 +97,22 @@ namespace best_hackathon_2025.Controllers
             return Ok();
         }
 
+        [HttpPost("byIds")]
+        public async Task<IActionResult> GetUsersByIds([FromBody] List<string> ids)
+        {
+            if (ids == null || !ids.Any())
+                return BadRequest("Список id пустий");
+
+            var users = await _userRepository.GetManyByIdsAsync(ids);
+
+            var result = users.Select(u => new
+            {
+                id = u.Id,
+                name = u.Name
+            });
+
+            return Ok(result);
+        }
+
     }
 }

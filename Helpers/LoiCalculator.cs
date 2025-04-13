@@ -16,11 +16,11 @@ namespace best_hackathon_2025.Helpers
             { "coordination", new List<string> { "Антиковзаюче покриття", "Доступний вхід без сходів", "Розмітка на підлозі" } }
         };
 
-        public double CalculateLoi(Point point, string? disabilityType = null)
+        public int CalculateLoi(Point point, string? disabilityType = null)
         {
             if (disabilityType == null)
             {
-                return Math.Round((double)point.Categories.Count / 20 * 10, 2);
+                return (int)Math.Round((double)point.Categories.Count / 20 * 10, 2);
             }
 
             if (!_disabilityCategories.ContainsKey(disabilityType))
@@ -29,7 +29,7 @@ namespace best_hackathon_2025.Helpers
             var targetCategories = _disabilityCategories[disabilityType];
             int matched = point.Categories.Count(c => targetCategories.Contains(c));
 
-            return Math.Round((double)matched / targetCategories.Count * 10, 2);
+            return (int)Math.Round((double)matched / targetCategories.Count * 10, 2);
         }
     }
 }

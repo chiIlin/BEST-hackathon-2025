@@ -2,6 +2,7 @@
 using best_hackathon_2025.MongoDB.Collections;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using best_hackathon_2025.Helpers;
 
 namespace best_hackathon_2025.Controllers
 {
@@ -10,16 +11,26 @@ namespace best_hackathon_2025.Controllers
     public class PointController : ControllerBase
     {
         private readonly IPointRepository _pointRepository;
-
+        private readonly LoiCalculator _loiCalculator;
         public PointController(IPointRepository pointRepository)
         {
             _pointRepository = pointRepository;
+            _loiCalculator = new LoiCalculator();
         }
 
         [HttpGet]
         public async Task<IActionResult> GetAll()
-            => Ok(await _pointRepository.GetAllAsync());
+        {
+            var points = await _pointRepository.GetAllAsync();
 
+            // Обрахунок LOI для кожного поінта
+            foreach (var point in points)
+            {
+                point.LOI = _loiCalculator.CalculateLoi(point);
+            }
+
+            return Ok(points);
+        }
         [Authorize]                     // лише залогінені
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] PointDto dto)
@@ -74,6 +85,26 @@ namespace best_hackathon_2025.Controllers
             await _pointRepository.DeleteAsync(id);
             return Ok("Point deleted successfully");
         }
+
+        [HttpPost("calculateLoi")]
+        public async Task<IActionResult> CalculateLoi([FromBody] CalculateLoiRequest request, [FromServices] LoiCalculator calculator)
+        {
+            var points = await _pointRepository.GetAllAsync();
+
+            var result = points.Select(p => new
+            {
+                p.Id,
+                Loi = calculator.CalculateLoi(p, request.DisabilityType)
+            });
+
+            return Ok(result);
+        }
+
+        public class CalculateLoiRequest
+        {
+            public string? DisabilityType { get; set; }
+        }
+
     }
 
 }

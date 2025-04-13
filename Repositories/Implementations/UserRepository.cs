@@ -1,5 +1,6 @@
 ﻿using best_hackathon_2025.MongoDB.Collections;
 using best_hackathon_2025.MongoDB;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using best_hackathon_2025.Repositories.Interfaces;
 
@@ -37,6 +38,14 @@ namespace best_hackathon_2025.Repositories.Implementations
             var update = Builders<User>.Update.AddToSet(x => x.Points, pointId);
             await _users.UpdateOneAsync(filter, update);
         }
+
+        public async Task<List<User>> GetManyByIdsAsync(List<string> ids)
+        {
+            var filter = Builders<User>.Filter.In(x => x.Id, ids);
+            return await _users.Find(filter).ToListAsync();
+        }
+
+
 
     }
 

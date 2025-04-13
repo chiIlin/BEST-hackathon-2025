@@ -620,65 +620,51 @@
                 markers.push(m);
             }
 
-            function filterPoints() {
-                const type = document.getElementById('disabilityFilter').value;
-
-                // Прибираємо всі маркери
-                markers.forEach(m => m.setMap(null));
-
-                if (type === 'all') {
-                    markers.forEach(m => m.setMap(map));
-                    return;
-                }
-
-                const requiredCategories = disabilityCategories[type];
-
-                markers.forEach((m, idx) => {
-                    const point = allPoints[idx];
-                    if (point.categories && point.categories.some(c => requiredCategories.includes(c))) {
-                        m.setMap(map);
-                    }
+            async function recalculateLoi() {
+                const res = await fetch('/api/point/calculateLoi', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ disabilityType: currentFilterType === 'all' ? null : currentFilterType })
                 });
+
+                const data = await res.json();
+
+                allPoints.forEach(p => {
+                    const newLoi = data.find(x => x.id === p.id)?.loi ?? p.loi;
+                    p.loi = newLoi;
+                });
+
+                filterPoints();
             }
 
-            async function showPointInfo(p) {
-                selectedPoint = p; // Зберігаємо вибрану точку
-                const infoContent = document.getElementById('infoContent');
-                const reviewsSection = document.querySelector('.reviews-section');
-                const reviewsContainer = document.getElementById('reviews');
-                const addReviewSection = document.querySelector('.add-review');
-            
-                // Оновлюємо інформацію про точку
-                infoContent.innerHTML = `
-                    <p class="info-item"><strong>${p.address || 'Назва місця, вулиці'}</strong></p>
-                    <p class="info-item"><strong>LOI:</strong> ${p.loi}</p>
-                    <p class="info-item"><strong>Категорії:</strong> ${(p.categories ?? []).join(', ') || '-'}</p>
-                    <p class="info-item"><strong>Перевірено:</strong> ${p.verified ? 'Так' : 'Ні'}</p>
-                    ${userToken ? `<button class="save-point-btn" onclick="savePoint('${p.id}')">Зберегти точку</button>` : ''}
-                `;
-            
-                // Показуємо секцію відгуків
-                reviewsSection.style.display = 'block';
-            
-                // Завантажуємо відгуки для вибраної точки
+
+            async function loadReviews(pointId) {
                 try {
-                    const res = await fetch(`/api/review/byPoint/${p.id}`);
+                    const res = await fetch(`/api/review/byPointFull/${pointId}`);
                     const reviews = await res.json();
-            
-                    // Очищаємо контейнер відгуків
+
+                    const reviewsContainer = document.getElementById('reviews');
                     reviewsContainer.innerHTML = '';
-            
+
                     if (reviews.length === 0) {
-                        // Якщо відгуків немає, показуємо плейсхолдер
                         reviewsContainer.innerHTML = `
                             <div class="review-placeholder">На жаль, відгуків немає(</div>
                             <div class="review-text">Можете додати свій!</div>
                         `;
                     } else {
-                        // Додаємо відгуки
                         reviews.forEach(review => {
+                            const date = new Date(review.timeCreated).toLocaleString('uk-UA', {
+                                day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit'
+                            });
+
                             reviewsContainer.innerHTML += `
                                 <div class="review-item">
+                                    <div class="review-header">
+                                        <span class="review-username">${review.userName}</span>
+                                        <span class="review-date">${date}</span>
+                                    </div>
                                     <div class="review-rating">
                                         ${'★'.repeat(review.rating)}${'☆'.repeat(5 - review.rating)}
                                     </div>
@@ -688,26 +674,51 @@
                         });
                     }
                 } catch (error) {
-                    console.error('Помилка завантаження відгуків:', error);
-                    reviewsContainer.innerHTML = `
-                        <div class="review-placeholder">Відгуків ще немає.</div>
-                    `;
+                    console.error('Помилка при завантаженні відгуків:', error);
                 }
-            
-                // Завжди показуємо форму додавання відгуків
+            }
+
+
+
+            async function showPointInfo(p) {
+                selectedPoint = p;
+                const infoContent = document.getElementById('infoContent');
+                const reviewsSection = document.querySelector('.reviews-section');
+                const addReviewSection = document.querySelector('.add-review');
+
+                // Інфа про поінт
+                infoContent.innerHTML = `
+                    <p class="info-item"><strong>${p.address || 'Назва місця, вулиці'}</strong></p>
+                    <p class="info-item"><strong>Опис:</strong> ${p.description || 'Немає опису'}</p>
+                    <p class="info-item"><strong>LOI:</strong> ${p.loi}</p>
+                    <p class="info-item"><strong>Категорії:</strong> ${(p.categories ?? []).join(', ') || '-'}</p>
+                    <p class="info-item"><strong>Перевірено:</strong> ${p.verified ? 'Так' : 'Ні'}</p>
+                    ${userToken ? `<button class="save-point-btn" onclick="savePoint('${p.id}')">Зберегти точку</button>` : ''}
+                `;
+
+                reviewsSection.style.display = 'block';
                 addReviewSection.style.display = 'block';
-                document.getElementById('rev').value = ''; // Очищаємо текстове поле
-                document.getElementById('rate').value = 0; // Скидаємо рейтинг
-                const stars = document.querySelectorAll('.star-rating');
-                stars.forEach(star => {
+
+                // Завантажуємо відгуки з нормального ендпоінта
+                await loadReviews(p.id);
+
+                document.getElementById('rev').value = '';
+                document.getElementById('rate').value = 0;
+                document.querySelectorAll('.star-rating').forEach(star => {
                     star.classList.remove('bi-star-fill');
                     star.classList.add('bi-star');
                 });
             }
 
-            async function addReview(pointId) {
+
+            async function addReview() {
+                if (!selectedPoint) {
+                    alert("Будь ласка, виберіть точку, щоб залишити відгук.");
+                    return;
+                }
+
                 const body = {
-                    pointId: pointId,
+                    pointId: selectedPoint.id,
                     reviewText: document.getElementById('rev').value,
                     rating: +document.getElementById('rate').value
                 };
@@ -723,12 +734,13 @@
 
                 if (res.ok) {
                     alert('Відгук додано');
-                    loadReviews(pointId);
+                    loadReviews(selectedPoint.id);
                 } else {
                     const err = await res.text();
                     alert('Помилка: ' + err);
                 }
             }
+
 
             async function savePoint(id) {
                 const res = await fetch('/api/user/savePoint/' + id, {
@@ -904,11 +916,40 @@
         menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
     }
 
-    function applyFilter(filterType) {
-        toggleFilterMenu(); // Закриваємо меню після вибору
-        filterPoints(filterType); // Викликаємо існуючу функцію для фільтрації
+    function filterPoints(type = 'all') {
+        markers.forEach(m => m.setMap(null)); // забираємо всі маркери
+        markers = []; // чистимо масив маркерів
 
-        // Оновлюємо текст вибраного фільтра
+        let filteredPoints = [];
+
+        if (type === 'all') {
+            filteredPoints = allPoints;
+        } else {
+            const requiredCategories = disabilityCategories[type];
+            filteredPoints = allPoints.filter(p =>
+                p.categories && p.categories.some(c => requiredCategories.includes(c))
+            );
+        }
+
+        // Рахуємо новий LOI
+        filteredPoints.forEach(p => {
+            if (type === 'all') {
+                p.loi = Math.round((p.categories.length / 20) * 10 * 100) / 100;
+            } else {
+                const requiredCategories = disabilityCategories[type];
+                const matched = p.categories.filter(c => requiredCategories.includes(c)).length;
+                p.loi = Math.round((matched / requiredCategories.length) * 10 * 100) / 100;
+            }
+        });
+
+        filteredPoints.forEach(addMarker); // показуємо маркери
+    }
+
+    function applyFilter(filterType) {
+        toggleFilterMenu();
+        currentFilterType = filterType;
+        filterPoints(filterType);
+
         const filterNames = {
             all: "Усі поінти",
             vision: "Вади зору",
@@ -920,24 +961,13 @@
         document.getElementById('selectedFilter').innerText = filterNames[filterType] || "Усі поінти";
     }
 
-    // Модифікуємо функцію filterPoints для прийому параметра
-    function filterPoints(type = 'all') {
-        const markers = window.markers || [];
-        markers.forEach(m => m.setMap(null)); // Прибираємо всі маркери
 
-        if (type === 'all') {
-            markers.forEach(m => m.setMap(map));
-            return;
-        }
 
-        const requiredCategories = disabilityCategories[type];
-        markers.forEach((m, idx) => {
-            const point = allPoints[idx];
-            if (point.categories && point.categories.some(c => requiredCategories.includes(c))) {
-                m.setMap(map);
-            }
-        });
-    }
+
+
+
+
+
 
     // Закриваємо меню при кліку поза ним
     document.addEventListener('click', (e) => {

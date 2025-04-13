@@ -3,6 +3,7 @@ using best_hackathon_2025.Repositories.Interfaces;
 using best_hackathon_2025.MongoDB.Collections;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using best_hackathon_2025.Repositories.Implementations;
 
 namespace best_hackathon_2025.Controllers
 {
@@ -11,10 +12,12 @@ namespace best_hackathon_2025.Controllers
     public class ReviewController : ControllerBase
     {
         private readonly IReviewRepository _reviewRepository;
+        private readonly IUserRepository _userRepository;
 
-        public ReviewController(IReviewRepository reviewRepository)
+        public ReviewController(IReviewRepository reviewRepository, IUserRepository userRepository)
         {
             _reviewRepository = reviewRepository;
+            _userRepository = userRepository;
         }
 
         [HttpGet]
@@ -83,6 +86,32 @@ namespace best_hackathon_2025.Controllers
 
             return Ok(filtered);
         }
+
+        [HttpGet("byPointFull/{pointId}")]
+        public async Task<IActionResult> GetByPointFull(string pointId)
+        {
+            var reviews = await _reviewRepository.GetByPointIdAsync(pointId);
+
+            var userIds = reviews.Select(r => r.UserId).Distinct().ToList();
+
+            var users = await _userRepository.GetManyByIdsAsync(userIds);
+
+            Console.WriteLine("BYPOINTFULL CALLED");
+
+            var result = reviews.Select(r => new
+            {
+                r.Id,
+                r.PointId,
+                r.UserId,
+                UserName = users.FirstOrDefault(u => u.Id == r.UserId)?.Name ?? "Анонім",
+                r.ReviewText,
+                r.Rating,
+                r.TimeCreated
+            }).ToList();
+
+            return Ok(result);
+        }
+
 
     }
 }

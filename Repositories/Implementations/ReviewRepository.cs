@@ -13,6 +13,10 @@ namespace best_hackathon_2025.Repositories.Implementations
         {
             _reviews = context.Database.GetCollection<Review>("reviews");
         }
+        public async Task<List<Review>> GetByPointIdAsync(string pointId)
+        {
+            return await _reviews.Find(r => r.PointId == pointId).ToListAsync();
+        }
 
         public async Task<List<Review>> GetAllAsync() => await _reviews.Find(_ => true).ToListAsync();
         public async Task<Review> GetByIdAsync(string id) => await _reviews.Find(x => x.Id == id).FirstOrDefaultAsync();
