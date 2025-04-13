@@ -116,12 +116,14 @@
                         <div class="route-point">
                             <i class="bi bi-geo-alt-fill"></i>
                             <input type="text" id="pointAInput" placeholder="Звідки?" />
+                            <button class="set-point-btn" onclick="setPointAFromSelected()">Задати як точку A</button>
                         </div>
                         <div class="route-point">
                             <i class="bi bi-geo-alt-fill"></i>
                             <input type="text" id="pointBInput" placeholder="Куди?" />
+                            <button class="set-point-btn" onclick="setPointBFromSelected()">Задати як точку B</button>
                         </div>
-                        <button class="clear-route-btn" onclick="clearRouteInputs()">Очистити</button> <!-- Нова кнопка -->
+                        <button class="clear-route-btn" onclick="clearRouteInputs()">Очистити</button>
                     </div>
                     
                     <div class="route-results" id="routeResults">
@@ -611,10 +613,8 @@
                     showPointInfo(p);
 
                     if (!routeLocked) {
-                        document.querySelector('.info-content').innerHTML += `
-                            <button onclick='setPointA({lat:${p.latitude}, lng:${p.longitude}})'>Задати як точку A</button>
-                            <button onclick='setPointB({lat:${p.latitude}, lng:${p.longitude}})'>Задати як точку B</button>
-                        `;
+                        // Видаляємо додавання кнопок у innerHTML
+                        // Інші функції залишаються без змін
                     }
                 });
                 markers.push(m);
@@ -642,6 +642,7 @@
             }
 
             async function showPointInfo(p) {
+                selectedPoint = p; // Зберігаємо вибрану точку
                 const infoContent = document.getElementById('infoContent');
                 const reviewsSection = document.querySelector('.reviews-section');
                 const reviewsContainer = document.getElementById('reviews');
@@ -879,6 +880,22 @@
                 } catch (error) {
                     console.error('Помилка при завантаженні стилю карти:', error);
                 }
+            }
+
+            function setPointAFromSelected() {
+                if (!selectedPoint) {
+                    alert("Будь ласка, виберіть точку на карті.");
+                    return;
+                }
+                setPointA({ lat: selectedPoint.latitude, lng: selectedPoint.longitude });
+            }
+
+            function setPointBFromSelected() {
+                if (!selectedPoint) {
+                    alert("Будь ласка, виберіть точку на карті.");
+                    return;
+                }
+                setPointB({ lat: selectedPoint.latitude, lng: selectedPoint.longitude });
             }
         </script>
         <script>

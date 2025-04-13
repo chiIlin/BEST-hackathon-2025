@@ -579,6 +579,22 @@
 .clear-route-btn:hover {
     background-color: var(--danger-color); /* Червоний колір */
 }
+
+.set-point-btn {
+    margin-left: 10px;
+    padding: 5px 10px;
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+}
+
+.set-point-btn:hover {
+    background-color: var(--primary-color);
+}
   
   /* Review Items */
   .review-item {
