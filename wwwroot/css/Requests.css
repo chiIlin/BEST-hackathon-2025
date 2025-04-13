@@ -60,3 +60,58 @@
 .btn-map:hover {
     background: #1565c0;
 }
+
+/* Додаємо стилі для кнопки "На головну" */
+.top-panel {
+    margin-bottom: 40px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+    width: 100%;
+}
+
+/* Уніфікований стиль для кнопки "На головну" */
+.back-to-home {
+    text-decoration: none;
+    color: #31EB78;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    background: #2D2929;
+    padding: 8px 12px;
+    border-radius: 5px;
+    transition: background 0.3s, color 0.3s;
+}
+
+.back-to-home:hover {
+    background: #31EB78;
+    color: #191919;
+}
+
+.back-to-home i {
+    margin-right: 5px;
+    font-size: 18px;
+}
+
+.profile-btn-fixed {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #4CAF50;
+    color: white;
+    padding: 8px 14px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 16px;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+.profile-btn-fixed:hover {
+    background: #3e8e41;
+    transform: scale(1.05);
+}
+
+.profile-btn-fixed i {
+    font-size: 20px;
+}

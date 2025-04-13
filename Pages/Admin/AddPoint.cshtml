@@ -2,75 +2,13 @@
 @inject IConfiguration Config
 <link rel="stylesheet" href="/css/AddPoint.css" />
 
-<div class="top-panel" style="margin-bottom: 40px; display: flex; align-items: center; justify-content: space-between; width: 100%;">
-    <a href="/" class="logo-link-hover" style="display: flex; align-items: center; text-decoration: none; color: white; transition: color 0.2s;">
-        <div class="logo-grid-hover">
-            <div></div><div></div><div></div>
-            <div></div><div></div><div></div>
-            <div></div><div></div><div></div>
-        </div>
-        <span style="font-size: 20px; font-weight: bold; letter-spacing: 1px; margin-left: 10px;">CHILLGO</span>
-    </a>
-
-    <a href="/Auth/Profile" class="profile-btn-fixed">
-        <i class="bi bi-person-circle"></i> Профіль
+<div class="top-panel">
+    <a href="/" class="back-to-home">
+        <i class="bi bi-arrow-left"></i> На головну
     </a>
 </div>
 
-<style>
-    .profile-btn-fixed {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        background: #4CAF50;
-        color: white;
-        padding: 8px 14px;
-        border-radius: 8px;
-        text-decoration: none;
-        font-weight: 500;
-        font-size: 16px;
-        transition: background-color 0.3s, transform 0.2s;
-    }
-
-        .profile-btn-fixed:hover {
-            background: #3e8e41;
-            transform: scale(1.05);
-        }
-
-        .profile-btn-fixed i {
-            font-size: 20px;
-        }
-
-    .logo-grid-hover {
-        display: grid;
-        grid-template-columns: repeat(3, 10px);
-        grid-gap: 8px;
-        margin-right: 8px;
-        transition: grid-gap 0.4s, margin-right 0.4s;
-    }
-
-        .logo-grid-hover div {
-            width: 10px;
-            height: 10px;
-            background-color: #14D378;
-            transition: width 0.3s, height 0.3s;
-        }
-
-    .logo-link-hover:hover .logo-grid-hover div {
-        width: 6px;
-        height: 6px;
-    }
-
-    .logo-link-hover:hover .logo-grid-hover {
-        grid-gap: 4px;
-        margin-right: 4px;
-    }
-</style>
-
-
 <div class="admin-container">
-
-    
     <h2>Додавання нової точки</h2>
 
     <div id="map" class="map-container"></div>
