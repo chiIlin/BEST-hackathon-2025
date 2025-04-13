@@ -19,6 +19,7 @@
 | Controllers/ | API контролери (Auth, User, Point, Review, Transport, PointRequest, LoiRequest) |
 | MongoDB/ | Collections (Моделі даних) + MongoDbContext |
 | Repositories/ | CRUD репозиторії для кожної моделі (Interfaces + Implementations) |
+| ML/| Основні елементи нейронки, та вона сама (в .pth, .onnx) |
 | Pages/ | Razor Pages для UI (Login, Register, Profile, Index, Admin) |
 | wwwroot/css/ | Стилі для фронту |
 | Program.cs | Dependency Injection, JWT, MongoDB налаштування |
