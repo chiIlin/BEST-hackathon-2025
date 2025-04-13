@@ -1,0 +1,43 @@
+grab_bar:
+  - (no attributes)
+
+ramp:
+  - width: 50cm to 100cm
+  - width: less than 50cm
+  - width: more than 100cm
+
+stair:
+  - number_of_steps: 10
+  - number_of_steps: 11
+  - number_of_steps: 12
+  - number_of_steps: 13
+  - number_of_steps: 14
+  - number_of_steps: 15
+  - number_of_steps: 16
+  - number_of_steps: 17
+  - number_of_steps: 18
+  - number_of_steps: 19
+  - number_of_steps: 2
+  - number_of_steps: 20
+  - number_of_steps: 21
+  - number_of_steps: 25
+  - number_of_steps: 26
+  - number_of_steps: 3
+  - number_of_steps: 4
+  - number_of_steps: 5
+  - number_of_steps: 6
+  - number_of_steps: 7
+  - number_of_steps: 8
+  - number_of_steps: 9
+
+step:
+  - height: 3cm to 7cm, type: curb
+  - height: 3cm to 7cm, type: doorstep
+  - height: 3cm to 7cm, type: other
+  - height: less than 3cm, type: curb
+  - height: less than 3cm, type: doorstep
+  - height: less than 3cm, type: other
+  - height: more than 7cm, type: curb
+  - height: more than 7cm, type: doorstep
+  - height: more than 7cm, type: other
+
