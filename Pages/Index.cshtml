@@ -37,23 +37,20 @@
             <div class="search-container">
                 <div class="search-box">
                     <i class="bi bi-search search-icon"></i>
-                    <input type="text" id="searchInput" placeholder="Пошук" oninput="searchPoints(this.value)" />
-                    <div id="searchSuggestions" class="search-suggestions"></div>
+                    <input type="text" id="searchInput" placeholder="Пошук" />
+                    <div id="searchSuggestions" style="position:absolute; background:white; border:1px solid #ccc; z-index:99; display:none; max-height:200px; overflow-y:auto; width:250px; top: 40px;"></div>
                 </div>
             </div>
 
             <div class="filter-container">
-                <div class="filter-dropdown">
-                    <i class="bi bi-sliders filter-icon" onclick="toggleFilterMenu()"></i>
-                    <div class="filter-menu" id="filterMenu">
-                        <div class="filter-item" onclick="applyFilter('all')">Усі поінти</div>
-                        <div class="filter-item" onclick="applyFilter('vision')">Вади зору</div>
-                        <div class="filter-item" onclick="applyFilter('hearing')">Вади слуху</div>
-                        <div class="filter-item" onclick="applyFilter('movement')">Порушення ОРА</div>
-                        <div class="filter-item" onclick="applyFilter('prosthesis')">Протези/Ортопедія</div>
-                        <div class="filter-item" onclick="applyFilter('coordination')">Координація рухів</div>
-                    </div>
-                </div>
+                <select id="disabilityFilter" onchange="filterPoints()">
+                    <option value="all">Усі поінти</option>
+                    <option value="vision">Вади зору</option>
+                    <option value="hearing">Вади слуху</option>
+                    <option value="movement">Порушення ОРА</option>
+                    <option value="prosthesis">Протези/Ортопедія</option>
+                    <option value="coordination">Координація рухів</option>
+                </select>
             </div>
 
             <div class="nav-actions">
@@ -158,6 +155,7 @@
                 
                 <!-- Controls -->
                 <div class="map-controls">
+
 
                     <button class="zoom-button zoom-in">+</button>
                     <button class="zoom-button zoom-out">−</button>
@@ -785,23 +783,23 @@
 
                 suggestions.innerHTML = '';
                 found.forEach(p => {
-                    const item = document.createElement('div');
-                    item.className = 'search-suggestion-item';
-                    item.textContent = p.address;
-                    item.onclick = () => {
-                        focusPoint(p.latitude, p.longitude);
-                        showPointInfo(p);
-                        suggestions.style.display = 'none';
-                    };
-                    suggestions.appendChild(item);
+                    suggestions.innerHTML += `
+                        <div style="padding:5px; cursor:pointer;" onclick='selectSearchPoint(${p.latitude}, ${p.longitude}, ${JSON.stringify(p)})'>${p.address}</div>
+                    `;
                 });
                 suggestions.style.display = 'block';
             }
+
+
+
+
 
             function focusPoint(lat, lng) {
                 map.setCenter({ lat, lng });
                 map.setZoom(16);
             }
+
+
 
             function setupSearch() {
 
@@ -875,44 +873,6 @@
                 }
             }
         </script>
-        <script>
-    function toggleFilterMenu() {
-        const menu = document.getElementById('filterMenu');
-        menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
-    }
-
-    function applyFilter(filterType) {
-        toggleFilterMenu(); // Закриваємо меню після вибору
-        filterPoints(filterType); // Викликаємо існуючу функцію для фільтрації
-    }
-
-    // Модифікуємо функцію filterPoints для прийому параметра
-    function filterPoints(type = 'all') {
-        const markers = window.markers || [];
-        markers.forEach(m => m.setMap(null)); // Прибираємо всі маркери
-
-        if (type === 'all') {
-            markers.forEach(m => m.setMap(map));
-            return;
-        }
-
-        const requiredCategories = disabilityCategories[type];
-        markers.forEach((m, idx) => {
-            const point = allPoints[idx];
-            if (point.categories && point.categories.some(c => requiredCategories.includes(c))) {
-                m.setMap(map);
-            }
-        });
-    }
-
-    // Закриваємо меню при кліку поза ним
-    document.addEventListener('click', (e) => {
-        const menu = document.getElementById('filterMenu');
-        if (!menu.contains(e.target) && !e.target.classList.contains('filter-icon')) {
-            menu.style.display = 'none';
-        }
-    });
-</script>
         <script async defer src="https://maps.googleapis.com/maps/api/js?key=@Configuration["GoogleMaps:ApiKey"]&callback=initMap"></script>
     }
 </body>
