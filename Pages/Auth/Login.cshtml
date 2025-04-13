@@ -1,0 +1,26 @@
+﻿@page
+@model LoginModel
+@{
+    ViewData["Title"] = "Login";
+}
+
+<h2>Login</h2>
+
+<form method="post">
+    <div>
+        <label>Email</label>
+        <input asp-for="Input.Email" type="email" />
+    </div>
+
+    <div>
+        <label>Password</label>
+        <input asp-for="Input.Password" type="password" />
+    </div>
+
+    <button type="submit">Login</button>
+</form>
+
+@if (!string.IsNullOrEmpty(Model.Message))
+{
+    <p>@Model.Message</p>
+}
