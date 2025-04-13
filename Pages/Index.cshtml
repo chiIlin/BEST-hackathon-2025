@@ -522,6 +522,18 @@
                 
                 // Спочатку приховуємо результати маршруту
                 document.getElementById('routeResults').style.display = 'none';
+
+                const urlParams = new URLSearchParams(window.location.search);
+                const showPointId = urlParams.get('showPointId');
+
+                if (showPointId) {
+                    const res = await fetch('/api/point/' + showPointId);
+                    if (res.ok) {
+                        const p = await res.json();
+                        focusPoint(p.latitude, p.longitude);
+                        showPointInfo(p);
+                    }
+                }
             }
             
             function setupRouteInputs() {
@@ -970,6 +982,10 @@
                 }
                 setPointB({ lat: selectedPoint.latitude, lng: selectedPoint.longitude });
             }
+
+            
+
+
         </script>
         <script>
     function toggleFilterMenu() {

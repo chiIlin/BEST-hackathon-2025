@@ -45,6 +45,13 @@ namespace best_hackathon_2025.Repositories.Implementations
             return await _users.Find(filter).ToListAsync();
         }
 
+        public async Task RemovePointAsync(string userId, string pointId)
+        {
+            var filter = Builders<User>.Filter.Eq(u => u.Id, userId);
+            var update = Builders<User>.Update.Pull(u => u.Points, pointId);
+            await _users.UpdateOneAsync(filter, update);
+        }
+
 
 
     }

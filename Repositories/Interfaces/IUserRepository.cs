@@ -12,6 +12,7 @@ namespace best_hackathon_2025.Repositories.Interfaces
         Task<User> GetByEmailAsync(string email);
         Task SavePointAsync(string userId, string pointId);
         Task<List<User>> GetManyByIdsAsync(List<string> ids);
+        Task RemovePointAsync(string userId, string pointId);
 
     }
 

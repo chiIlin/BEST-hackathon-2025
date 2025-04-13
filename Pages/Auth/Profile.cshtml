@@ -4,47 +4,91 @@
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 <link rel="stylesheet" href="/css/Profile.css" />
 
-<div class="card" id="profileCard">
-    <h2>Профіль користувача</h2>
-
-    <div class="input-group">
-        <label>Ім'я:</label>
-        <input id="name" type="text" />
+<div class="admin-container">
+    <div class="top-panel" style="margin-bottom: 40px; display: flex; align-items: center;">
+        <a href="/" class="logo-link-hover" style="display: flex; align-items: center; text-decoration: none; color: white; transition: color 0.2s;">
+            <div class="logo-grid-hover">
+                <div></div><div></div><div></div>
+                <div></div><div></div><div></div>
+                <div></div><div></div><div></div>
+            </div>
+            <span style="font-size: 20px; font-weight: bold; letter-spacing: 1px; margin-left: 10px;">CHILLGO</span>
+        </a>
     </div>
 
-    <div class="input-group">
-        <label>Інклюзивність:</label>
-        <select id="loi">
-        </select>
+    <style>
+        .logo-grid-hover {
+            display: grid;
+            grid-template-columns: repeat(3, 10px);
+            grid-gap: 8px;
+            margin-right: 8px;
+            transition: grid-gap 0.4s, margin-right 0.4s;
+        }
+
+            .logo-grid-hover div {
+                width: 10px;
+                height: 10px;
+                background-color: #14D378;
+                transition: width 0.3s, height 0.3s;
+            }
+
+        .logo-link-hover:hover .logo-grid-hover div {
+            width: 6px;
+            height: 6px;
+        }
+
+        .logo-link-hover:hover .logo-grid-hover {
+            grid-gap: 4px;
+            margin-right: 4px;
+        }
+    </style>
+
+
+
+
+    <div class="card" id="profileCard">
+        <h2>Профіль користувача</h2>
+
+        <div class="input-group">
+            <label>Ім'я:</label>
+            <input id="name" type="text" />
+        </div>
+
+        <div class="input-group">
+            <label>Інклюзивність:</label>
+            <select id="loi"></select>
+        </div>
+
+        <div class="input-group">
+            <label>Email:</label>
+            <input id="email" type="text" disabled />
+        </div>
+
+        <div class="input-group">
+            <button class="btn btn-secondary" onclick="togglePassword()">Змінити пароль</button>
+        </div>
+
+        <div class="input-group" id="passwordGroup" style="display:none;">
+            <label>Новий пароль:</label>
+            <input id="password" type="password" placeholder="Введіть новий пароль" />
+        </div>
+
+        <button class="btn" id="saveBtn">Зберегти зміни</button>
+
+        <p id="msg" class="status-message"></p>
+
+        <a class="btn" id="addPointBtn" style="display:none;" href="/Admin/AddPoint">Додати точку</a>
+        <a class="btn btn-secondary" id="requestsBtn" style="display:none;" href="/Admin/Requests">Модерація точок</a>
     </div>
 
-
-    <div class="input-group">
-        <label>Email:</label>
-        <input id="email" type="text" disabled />
+    <div class="card">
+        <h2>Збережені точки</h2>
+        <ul id="savedPoints"></ul>
     </div>
-
-    <div class="input-group">
-        <button class="btn btn-secondary" onclick="togglePassword()">Змінити пароль</button>
-    </div>
-
-    <div class="input-group" id="passwordGroup" style="display:none;">
-        <label>Новий пароль:</label>
-        <input id="password" type="password" placeholder="Введіть новий пароль" />
-    </div>
-
-    <button class="btn" id="saveBtn">Зберегти зміни</button>
-
-    <a class="btn" id="addPointBtn" style="display:none;" href="/Admin/AddPoint">Додати точку</a>
-    <a class="btn btn-secondary" id="requestsBtn" style="display:none;" href="/Admin/Requests">Модерація точок</a>
-</div>
-
-<div class="card">
-    <h2>Збережені точки</h2>
-    <ul id="savedPoints"></ul>
 </div>
 
 @section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bcryptjs/2.4.3/bcrypt.min.js"></script>
     <script>
         const token = localStorage.getItem('token');
         if (!token) location.href = '/Auth/Login';
@@ -65,13 +109,11 @@
 
         async function loadProfile() {
             const res = await fetch('/api/user/me', { headers: { Authorization: 'Bearer ' + token } });
-
             if (!res.ok) {
                 alert('Помилка завантаження профілю');
                 location.href = '/Auth/Login';
                 return;
             }
-
             userData = await res.json();
 
             document.getElementById('name').value = userData.name;
@@ -82,7 +124,6 @@
                 document.getElementById('addPointBtn').style.display = 'inline-block';
                 document.getElementById('requestsBtn').style.display = 'inline-block';
             }
-
             await loadPoints();
         }
 
@@ -94,11 +135,52 @@
                 return;
             }
             list.innerHTML = '';
+
             for (const id of points) {
                 const res = await fetch('/api/point/' + id);
                 if (!res.ok) continue;
                 const p = await res.json();
-                list.innerHTML += `<li>${p.address}</li>`;
+
+                list.innerHTML += `
+                    <li style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #3d3d3d;">
+                        <span>${p.address}</span>
+                        <div>
+                            <button class="btn btn-secondary" onclick="goToPoint('${p.id}')">Перейти</button>
+                            <button class="btn btn-secondary" onclick="removePoint('${p.id}')">Видалити</button>
+                        </div>
+                    </li>
+                `;
+            }
+        }
+
+        async function goToPoint(id) {
+            window.location.href = '/?showPointId=' + id;
+        }
+
+        async function removePoint(id) {
+            const res = await fetch('/api/user/removePoint/' + id, {
+                method: 'POST',
+                headers: { Authorization: 'Bearer ' + token }
+            });
+            if (res.ok) {
+                userData.points = userData.points.filter(p => p !== id);
+                await loadPoints();
+            } else {
+                alert('Помилка при видаленні точки');
+            }
+        }
+
+
+        async function removePoint(id) {
+            const res = await fetch('/api/user/removePoint/' + id, {
+                method: 'POST',
+                headers: { Authorization: 'Bearer ' + token }
+            });
+            if (res.ok) {
+                userData.points = userData.points.filter(p => p !== id);
+                await loadPoints();
+            } else {
+                alert('Помилка при видаленні точки');
             }
         }
 
@@ -111,7 +193,6 @@
 
         document.getElementById('saveBtn').onclick = async () => {
             const password = document.getElementById('password').value.trim();
-
             let selectedLoi = loiSelect.value;
             const inclusivnessList = selectedLoi === "Немає/Не вибрано" ? [] : [selectedLoi];
 
@@ -122,9 +203,8 @@
                 email: userData.email,
                 points: userData.points ?? [],
                 inclusivness: inclusivnessList,
-                hashedPassword: password ? password : userData.hashedPassword
+                hashedPassword: password ? bcrypt.hashSync(password, 10) : userData.hashedPassword
             };
-
 
             if (!body.name) {
                 alert('Ім\'я не може бути порожнім.');
@@ -140,12 +220,15 @@
                 body: JSON.stringify(body)
             });
 
+            const msg = document.getElementById('msg');
             if (res.ok) {
-                alert('Збережено успішно!');
-                if (password) location.reload();
+                msg.style.color = 'green';
+                msg.innerText = 'Зміни збережено!';
+                if (password) document.getElementById('password').value = '';
             } else {
                 const errorText = await res.text();
-                alert('Помилка: ' + res.status + '\n' + errorText);
+                msg.style.color = 'red';
+                msg.innerText = 'Помилка: ' + res.status + '\n' + errorText;
             }
         };
     </script>

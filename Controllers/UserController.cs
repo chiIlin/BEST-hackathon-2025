@@ -97,6 +97,18 @@ namespace best_hackathon_2025.Controllers
             return Ok();
         }
 
+        [HttpPost("removePoint/{pointId}")]
+        [Authorize]
+        public async Task<IActionResult> RemovePoint(string pointId)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null) return Unauthorized();
+
+            await _userRepository.RemovePointAsync(userId, pointId);
+            return Ok();
+        }
+
+
         [HttpPost("byIds")]
         public async Task<IActionResult> GetUsersByIds([FromBody] List<string> ids)
         {

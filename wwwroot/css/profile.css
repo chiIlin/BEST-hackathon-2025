@@ -153,3 +153,53 @@ ul li:last-child {
     font-size: 0.8rem;
     margin-left: 6px;
 }
+
+.back-btn {
+    display: inline-block;
+    text-decoration: none;
+    color: #4caf50;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+    .back-btn i {
+        margin-right: 5px;
+    }
+
+.top-panel {
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+}
+
+.logo-link {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: white;
+    transition: color 0.2s;
+}
+
+    .logo-link:hover {
+        color: #4caf50;
+    }
+
+.logo-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 6px);
+    grid-gap: 4px;
+    margin-right: 8px;
+}
+
+    .logo-grid div {
+        width: 6px;
+        height: 6px;
+        background-color: #4caf50;
+    }
+
+.brand-name {
+    font-size: 20px;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
