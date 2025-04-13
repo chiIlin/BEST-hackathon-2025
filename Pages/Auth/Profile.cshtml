@@ -2,7 +2,7 @@
 @using Microsoft.Extensions.Configuration
 @inject IConfiguration Config
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
-<link rel="stylesheet" href="~/css/profile.css" />
+<link rel="stylesheet" href="/css/Profile.css" />
 
 <div class="card" id="profileCard">
     <h2>Профіль користувача</h2>
@@ -112,7 +112,7 @@
             const body = {
                 id: userData.id,
                 name: document.getElementById('name').value.trim(),
-                role: userData.role,
+                role: loiSelect.value ? 'inclusive' : userData.role,
                 email: userData.email,
                 points: userData.points ?? [],
                 inclusivness: [loiSelect.value],

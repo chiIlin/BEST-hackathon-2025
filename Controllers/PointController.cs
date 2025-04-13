@@ -12,6 +12,7 @@ namespace best_hackathon_2025.Controllers
     {
         private readonly IPointRepository _pointRepository;
         private readonly LoiCalculator _loiCalculator;
+
         public PointController(IPointRepository pointRepository)
         {
             _pointRepository = pointRepository;
@@ -23,15 +24,15 @@ namespace best_hackathon_2025.Controllers
         {
             var points = await _pointRepository.GetAllAsync();
 
-            // Обрахунок LOI для кожного поінта
             foreach (var point in points)
             {
-                point.LOI = _loiCalculator.CalculateLoi(point);
+                point.LOI = point.ManualLOI ?? _loiCalculator.CalculateLoi(point);
             }
 
             return Ok(points);
         }
-        [Authorize]                     // лише залогінені
+
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] PointDto dto)
         {
@@ -86,25 +87,40 @@ namespace best_hackathon_2025.Controllers
             return Ok("Point deleted successfully");
         }
 
-        [HttpPost("calculateLoi")]
-        public async Task<IActionResult> CalculateLoi([FromBody] CalculateLoiRequest request, [FromServices] LoiCalculator calculator)
+        [HttpPost("calculate-loi")]
+        public async Task<IActionResult> CalculateLoi([FromBody] CalculateLoiRequest request)
         {
             var points = await _pointRepository.GetAllAsync();
 
             var result = points.Select(p => new
             {
                 p.Id,
-                Loi = calculator.CalculateLoi(p, request.DisabilityType)
+                Loi = _loiCalculator.CalculateLoi(p, request.DisabilityType)
             });
 
             return Ok(result);
         }
 
-        public class CalculateLoiRequest
+        [Authorize(Roles = "admin,inclusive")]
+        [HttpPut("updateLoi/{id}")]
+        public async Task<IActionResult> UpdateLoi(string id, [FromBody] LoiRequest req)
         {
-            public string? DisabilityType { get; set; }
+            var point = await _pointRepository.GetByIdAsync(id);
+            if (point == null) return NotFound();
+
+            point.ManualLOI = (int)req.Loi;
+            await _pointRepository.UpdateAsync(id, point);
+            return Ok("Доступність оновлено!");
         }
 
-    }
 
+
+
+        public class LoiRequest
+        {
+            public int Loi { get; set; } // int бо LOI у тебе int
+        }
+
+        public class CalculateLoiRequest { public string? DisabilityType { get; set; } }
+    }
 }

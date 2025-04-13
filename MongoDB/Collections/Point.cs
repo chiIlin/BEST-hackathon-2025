@@ -14,6 +14,7 @@ namespace best_hackathon_2025.MongoDB.Collections
         public List<string> Categories { get; set; } = [];
         public double Rating { get; set; }
         public int LOI { get; set; }        // Level Of Inclusiveness
+        public int? ManualLOI { get; set; }        // Manual Level Of Inclusiveness
         public string Address { get; set; }
         public string Description { get; set; }
         public List<string> ReviewIds { get; set; }

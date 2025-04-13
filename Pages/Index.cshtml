@@ -646,6 +646,7 @@
                     const reviews = await res.json();
 
                     const reviewsContainer = document.getElementById('reviews');
+                    
                     reviewsContainer.innerHTML = '';
 
                     if (reviews.length === 0) {
@@ -685,12 +686,21 @@
                 const infoContent = document.getElementById('infoContent');
                 const reviewsSection = document.querySelector('.reviews-section');
                 const addReviewSection = document.querySelector('.add-review');
+                const displayLoi = p.manualLOI !== null && p.manualLOI !== undefined ? p.manualLOI : p.loi;
 
                 // Інфа про поінт
                 infoContent.innerHTML = `
                     <p class="info-item"><strong>${p.address || 'Назва місця, вулиці'}</strong></p>
                     <p class="info-item"><strong>Опис:</strong> ${p.description || 'Немає опису'}</p>
-                    <p class="info-item"><strong>Доступність(0-10):</strong> ${p.loi}</p>
+                    <p class="info-item"><strong>Доступність(0-10):</strong> ${displayLoi}</p>
+                                ${userToken && p.categories.length > 0 ? `
+                <div class="loi-edit-container">
+                    <label>Редагувати доступність (0-10):</label>
+                    <input type="number" id="loiInput" min="0" max="10" step="0.1" value="${p.loi}" />
+                    <button class="save-loi-btn" onclick="updateLoi('${p.id}')">Зберегти</button>
+                </div>
+            ` : ''}
+
                     <p class="info-item"><strong>Категорії:</strong> ${(p.categories ?? []).join(', ') || '-'}</p>
                     <p class="info-item"><strong>Перевірено:</strong> ${p.verified ? 'Так' : 'Ні'}</p>
                     ${userToken ? `<button class="save-point-btn" onclick="savePoint('${p.id}')">Зберегти точку</button>` : ''}
@@ -740,6 +750,62 @@
                     alert('Помилка: ' + err);
                 }
             }
+
+            async function updateLoi(id) {
+                const newLoi = parseFloat(document.getElementById('loiInput').value);
+
+                if (isNaN(newLoi) || newLoi < 0 || newLoi > 10) {
+                    alert('LOI має бути від 0 до 10');
+                    return;
+                }
+
+                const res = await fetch(`/api/point/updateLoi/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + userToken
+                    },
+                    body: JSON.stringify({ loi: newLoi })
+                });
+
+                if (res.ok) {
+                    alert('LOI оновлено');
+                    selectedPoint.loi = newLoi;
+                    showPointInfo(selectedPoint);  // перезагрузка блока
+                    recalculateLoi(); // перезагрузка карти
+                } else {
+                    const err = await res.text();
+                    alert('Помилка: ' + err);
+                }
+            }
+
+            async function editLoi(currentLoi, pointId) {
+                const newLoi = prompt(`Введіть новий LOI (0-10):`, currentLoi);
+
+                if (newLoi === null) return; // Відміна
+                if (isNaN(newLoi) || newLoi < 0 || newLoi > 10) {
+                    alert("Некоректне значення LOI");
+                    return;
+                }
+
+                const res = await fetch(`/api/point/updateLoi/${pointId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + userToken
+                    },
+                    body: JSON.stringify({ loi: parseInt(newLoi) })
+                });
+
+                if (res.ok) {
+                    alert("LOI успішно оновлено");
+                    location.reload(); // перезавантажити сторінку щоб показався новий LOI
+                } else {
+                    const err = await res.text();
+                    alert("Помилка: " + err);
+                }
+            }
+
 
 
             async function savePoint(id) {
