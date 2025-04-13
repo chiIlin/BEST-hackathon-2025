@@ -1,4 +1,4 @@
-﻿@page
+@page
 @model best_hackathon_2025.Pages.IndexModel
 @using Microsoft.Extensions.Configuration
 @inject IConfiguration Configuration
@@ -45,8 +45,8 @@
             </div>
 
             <div class="filter-container">
-                <div class="filter-dropdown">
-                    <i class="bi bi-sliders filter-icon" onclick="toggleFilterMenu()"></i>
+                <div class="filter-dropdown" onclick="toggleFilterMenu()">
+                    <i class="bi bi-sliders filter-icon"></i>
                     <span id="selectedFilter" class="selected-filter">Усі поінти</span>
                     <div class="filter-menu" id="filterMenu">
                         <div class="filter-item" onclick="applyFilter('all')">Усі поінти</div>
@@ -132,7 +132,7 @@
                         <div class="route-option" id="route-option-0">
                             <div class="route-info">
                                 <span class="route-number">Маршрут 1: 22 хв.</span>
-                                <span class="route-details">Вулиця - Вулиця - Вулиця.</span>
+                                <span class="route-details"></span>
                                 <span class="route-inclusive">[Інклюзивний]</span>
                             </div>
                         </div>
@@ -140,7 +140,7 @@
                         <div class="route-option" id="route-option-1">
                             <div class="route-info">
                                 <span class="route-number">Маршрут 2: 18 хв.</span>
-                                <span class="route-details">Вулиця - Вулиця - Вулиця.</span>
+                                <span class="route-details"></span>
                                 <span class="route-partially">[Частково інклюзивний]</span>
                             </div>
                         </div>
@@ -148,7 +148,7 @@
                         <div class="route-option" id="route-option-2">
                             <div class="route-info">
                                 <span class="route-number">Маршрут 3: 16 хв.</span>
-                                <span class="route-details">Вулиця - Вулиця - Вулиця.</span>
+                                <span class="route-details"></span>
                                 <span class="route-non-inclusive">[Не інклюзивний]</span>
                             </div>
                         </div>
@@ -355,7 +355,7 @@
                             <div class="route-option" id="route-option-${index}" style="border-left: 5px solid ${color}">
                                 <div class="route-info">
                                     <span class="route-number">Маршрут ${index + 1}: ${leg.duration.text}</span>
-                                    <span class="route-details">Вулиця - Вулиця - Вулиця</span>
+                                    <span class="route-details"></span>
                                     <span class="${inclusivityClass}">${inclusivityType}</span>
                                 </div>
                                 <button onclick="selectRoute(${index})" class="select-route-btn">Обрати</button>
@@ -1135,6 +1135,8 @@
             menu.style.display = 'none';
         }
     });
+
+    document.getElementById('selectedFilter').addEventListener('click', toggleFilterMenu);
 </script>
         <script async defer src="https://maps.googleapis.com/maps/api/js?key=@Configuration["GoogleMaps:ApiKey"]&callback=initMap"></script>
         <script>
@@ -1173,4 +1175,4 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
     }
 </body>
-</html>
+</html>                     
